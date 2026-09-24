@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Temporary Works Field Inspection (TWS)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+.custom-header { background-color: #78350f; color: #ffffff; } /* Amber-900 */
+.signature-canvas { touch-action: none; cursor: crosshair; }
+/* Sequential lock styles */
+.locked-item { opacity: 0.4; pointer-events: none; filter: grayscale(100%); transition: all 0.3s ease; }
+</style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen pb-16">
+
+<!-- HEADER -->
+<header id="mainHeader" class="custom-header p-4 sticky top-0 z-40 shadow-md transition-colors duration-300">
+<div class="max-w-md mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div id="logoHeaderBox"><i data-lucide="hard-hat" class="w-6 h-6 text-amber-400 opacity-90"></i></div>
+<div>
+<h1 id="appTitle" class="text-base font-bold tracking-tight leading-tight">TW Field Inspection</h1>
+<p id="appSubtitle" class="text-[10px] opacity-80 leading-none">BS 5975 & CDM 2015 System</p>
+</div>
+</div>
+<span class="text-[10px] bg-black/30 text-white px-2 py-1 rounded font-bold uppercase tracking-wider">TWS Portal</span>
+</div>
+</header>
+
+<main class="max-w-md mx-auto p-4 space-y-4">
+
+<!-- METADATA CARD -->
+<div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+<h2 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-amber-900 border-b pb-2">TW Scope & Supervisor Details</h2>
+<div>
+<label class="block text-xs font-semibold text-slate-600 mb-1">Project / Client Organization *</label>
+<select id="selectClient" onchange="handleClientChange()" class="w-full border rounded-lg p-2.5 text-xs bg-slate-50 border-slate-300 focus:ring-2 focus:ring-amber-600 outline-none"></select>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-600 mb-1">Site Location Name *</label>
+<select id="selectSite" class="w-full border rounded-lg p-2.5 text-xs bg-slate-50 border-slate-300 focus:ring-2 focus:ring-amber-600 outline-none"></select>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-2 border-t mt-2">
+<div><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">TWS / Inspector *</label><input type="text" id="inputInspectorName" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-600 outline-none" placeholder="Name" /></div>
+<div><label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">TW Qualifications *</label><input type="text" id="inputInspectorQuals" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-600 outline-none" placeholder="e.g. CITB TWSTC" /></div>
+</div>
+</div>
+
+<div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-xs border border-blue-200 font-medium">
+<strong>Strict Enforcement Rule:</strong> Inspections must be completed in sequential order. A photograph is strictly mandatory for every single TW item before an answer can be logged.
+</div>
+
+<!-- QUESTIONS ACCORDION -->
+<div id="topicsContainer" class="space-y-3"></div>
+
+<!-- INSPECTOR NOTES SECTION -->
+<div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-2 mt-6">
+<label class="block font-bold text-slate-800 text-xs uppercase tracking-wider text-amber-900">TWS Executive Summary</label>
+<p class="text-[10px] text-slate-500">Provide an overall summary of the temporary works condition across the site.</p>
+<textarea id="inputInspectorNotes" rows="4" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-600 outline-none bg-slate-50" placeholder="Formal summary and closing remarks..."></textarea>
+</div>
+
+<!-- DIGITAL SIGNATURE -->
+<div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+<label class="block font-bold text-slate-800 text-xs uppercase tracking-wider text-amber-900">TWS / Inspector Digital Signature *</label>
+<p class="text-[10px] text-slate-500">Sign below. Your signature is embedded in the official PDF TW certificate.</p>
+<button type="button" onclick="openSigModal('auditor')" class="w-full bg-white border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-lg p-4 text-xs font-bold text-slate-600 hover:text-amber-700 transition flex items-center justify-center gap-2">
+<i data-lucide="pen-line" class="w-4 h-4"></i> <span id="sigBtnText">Tap here to sign</span>
+</button>
+<div id="sigPreviewBox" class="hidden p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">
+<img id="sigPreviewImg" class="h-16 mx-auto" />
+<button type="button" onclick="clearSignature()" class="mt-2 text-xs text-red-600 hover:text-red-700 font-bold">Clear & Re-sign</button>
+</div>
+</div>
+
+<!-- SITE REP SIGNATURE -->
+<div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+<label class="block font-bold text-slate-800 text-xs uppercase tracking-wider text-amber-900">Site Rep Acknowledgement (Optional)</label>
+<input type="text" id="inputSiteRepName" placeholder="Site representative name (e.g. Site Manager)" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-600 outline-none bg-slate-50" />
+<button type="button" onclick="openSigModal('rep')" class="w-full bg-white border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-lg p-4 text-xs font-bold text-slate-600 hover:text-amber-700 transition flex items-center justify-center gap-2">
+<i data-lucide="pen-line" class="w-4 h-4"></i> <span id="repSigBtnText">Tap here for site rep to sign</span>
+</button>
+<div id="repSigPreviewBox" class="hidden p-3 bg-slate-50 rounded-lg border border-slate-200 text-center">
+<img id="repSigPreviewImg" class="h-16 mx-auto" />
+<button type="button" onclick="clearRepSignature()" class="mt-2 text-xs text-red-600 hover:text-red-700 font-bold">Clear & Re-sign</button>
+</div>
+</div>
+
+<button id="submitBtn" type="button" onclick="submitInspection()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+<i data-lucide="check-square" class="w-5 h-5"></i> Submit Formal TW Report
+</button>
+
+</main>
+
+<!-- LIGHTBOX MODAL -->
+<div id="lightboxModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[100]" onclick="closeLightbox()">
+<img id="lightboxImg" src="" class="max-w-full max-h-full rounded shadow-2xl object-contain cursor-zoom-out" />
+<p class="absolute bottom-6 text-white text-xs font-bold bg-black/50 px-3 py-1 rounded">Tap anywhere to close</p>
+</div>
+
+<!-- SIGNATURE MODAL -->
+<div id="sigModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4 z-[110]">
+<div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3">
+<div class="flex items-center justify-between border-b pb-3">
+<h3 id="sigModalTitle" class="font-bold text-slate-800 text-base flex items-center gap-2"><i data-lucide="pen-line" class="w-5 h-5 text-amber-700"></i> Digital Signature</h3>
+<button type="button" onclick="closeSigModal()"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
+</div>
+<div class="border-2 border-slate-300 rounded-xl bg-white overflow-hidden">
+<canvas id="sigCanvas" class="signature-canvas w-full" style="height: 200px; display: block;"></canvas>
+</div>
+<div class="flex gap-2">
+<button type="button" onclick="clearSigCanvas()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-lg text-sm">Clear</button>
+<button type="button" onclick="closeSigModal()" class="flex-1 bg-white border border-slate-300 text-slate-700 font-bold py-3 rounded-lg text-sm">Cancel</button>
+<button type="button" onclick="saveSignature()" class="flex-1 bg-amber-700 hover:bg-amber-600 text-white font-bold py-3 rounded-lg text-sm shadow">Save</button>
+</div>
+</div>
+</div>
+
+<script>
+let SUPABASE_URL = localStorage.getItem('tw_supa_url') || "";
+let SUPABASE_ANON_KEY = localStorage.getItem('tw_supa_key') || "";
+let supabaseClient = null;
+
+const DEFAULT_TOPICS = [
+"1. Scaffolding & Edge Protection (TW Item)",
+"2. Falsework & Formwork (TW Item)",
+"3. Groundworks & Trench Support (TW Item)",
+"4. Hoardings & Site Fencing (TW Item)",
+"5. Loading Bays & Working Platforms (TW Item)",
+"6. Site Welfare Facilities (TW Item)",
+"7. Structural Propping (TW Item)",
+"8. Signage & Traffic Management (TW Item)",
+"9. Tower Cranes & Lifting Bases (TW Item)",
+"10. General TW Register & Procedure (Documentation)"
+];
+
+// Generate exactly 100 questions (10 per topic) regarding Temporary Works.
+const DEFAULT_QUESTIONS = [
+// Topic 1: Scaffolding
+{ topic: DEFAULT_TOPICS[0], type: "Documentation", text: "Has the scaffold design been formally approved by the TWC and is a copy available?" },
+{ topic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are all base plates and sole boards securely positioned on solid ground?" },
+{ topic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are structural ties installed to the building fabric exactly as per the TW design?" },
+{ topic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Is ledger and façade bracing installed correctly continuously across the structure?" },
+{ topic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are standard double handrails and toe-boards present on all working levels?" },
+{ topic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are all scaffold boards fully supported, tied down, and free from damage/rot?" },
+{ topic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are internal ladder access bays correctly segregated with self-closing gates?" },
+{ topic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Is debris netting or brick-guard protection installed and tightly secured?" },
+{ topic: DEFAULT_TOPICS[0], type: "Documentation", text: "Is a valid, green Scafftag visible at all access points and updated within 7 days?" },
+{ topic: DEFAULT_TOPICS[0], type: "Documentation", text: "Is the Safe Working Load (SWL) clearly displayed and not being exceeded on platforms?" },
+
+// Topic 2: Falsework & Formwork
+{ topic: DEFAULT_TOPICS[1], type: "Documentation", text: "Is there a TWC approved design drawing available on site for the falsework layout?" },
+{ topic: DEFAULT_TOPICS[1], type: "Documentation", text: "Has a formal 'Permit to Load' been issued by the TWC prior to concrete pour?" },
+{ topic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Is the ground bearing capacity verified and suitable for the falsework sole plates?" },
+{ topic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are all props plumb, adequately braced, and fully seated on node points?" },
+{ topic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are u-heads, pins, and wedges securely tightened and free of physical defects?" },
+{ topic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Is temporary edge protection built into the formwork decking prior to access?" },
+{ topic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are concrete pour rates strictly monitored to prevent exceeding hydraulic formwork pressure?" },
+{ topic: DEFAULT_TOPICS[1], type: "Documentation", text: "Has a formal 'Permit to Strike' / dismantle been issued by the TWC?" },
+{ topic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are struck materials cleared safely without overloading the newly poured slab?" },
+{ topic: DEFAULT_TOPICS[1], type: "Documentation", text: "Are daily visual inspections recorded by the TWS during active falsework operations?" },
+
+// Topic 3: Groundworks
+{ topic: DEFAULT_TOPICS[2], type: "Documentation", text: "Has a temporary works design been issued for trench shoring exceeding 1.2m depth?" },
+{ topic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are trench boxes, drag boxes, or sheet piles installed precisely as per the design?" },
+{ topic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are physical hard barriers installed at least 1m away from the excavation edge?" },
+{ topic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Is excavated spoil and heavy plant kept outside the zone of influence (45-degree line)?" },
+{ topic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are ground water ingress levels controlled (e.g. pumps operating and discharged safely)?" },
+{ topic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are safe, tied ladder access points provided every 15 meters within the trench?" },
+{ topic: DEFAULT_TOPICS[2], type: "Documentation", text: "Are underground services physically marked and isolated prior to machine excavation?" },
+{ topic: DEFAULT_TOPICS[2], type: "Documentation", text: "Is a valid CAT & Genny scan logged and attached to the Permit to Dig?" },
+{ topic: DEFAULT_TOPICS[2], type: "Documentation", text: "Is the formal Permit to Dig active, signed, and within its expiry timeframe?" },
+{ topic: DEFAULT_TOPICS[2], type: "Documentation", text: "Are statutory daily excavation inspection registers completed before operative entry?" },
+
+// Topic 4: Hoardings & Fencing
+{ topic: DEFAULT_TOPICS[3], type: "Documentation", text: "Has the perimeter hoarding been designed to withstand site-specific wind loading calculations?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are hoarding posts driven to the correct depth or supported by adequate, designed ballast block weights?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are all timber or steel panels securely fixed with no loose sections or gaps?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are vehicle and pedestrian access gates structurally sound and secured when closed?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is all statutory site signage (warnings, PPE) securely affixed to the hoarding?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is the hoarding visually free from collision damage from plant or public vehicles?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Where Heras fencing is used, are double clips applied and stabilized with angled braces?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is debris netting installed on fencing where dust/debris could affect the public?" },
+{ topic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are temporary lighting units securely attached to hoarding without risk of collapse?" },
+{ topic: DEFAULT_TOPICS[3], type: "Documentation", text: "Is a weekly perimeter security and structural stability inspection logged?" },
+
+// Topic 5: Loading Bays
+{ topic: DEFAULT_TOPICS[4], type: "Documentation", text: "Is a specific temporary works design approved for the loading bay structure?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the Safe Working Load (SWL) prominently displayed on a sign at the bay?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are block/brick materials loaded uniformly to prevent point-loading failure?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the up-and-over gate or safety barrier fully operational and used correctly?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are the base plates and ledger bracing beneath the bay verified as fully intact?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the bay decking completely secure with no trip hazards or gaps?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are specific wall ties connecting the bay to the main structure installed as designed?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is debris netting installed securely around the lower sections of the bay?" },
+{ topic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is access restricted only to authorized personnel during lifting operations?" },
+{ topic: DEFAULT_TOPICS[4], type: "Documentation", text: "Has the TWS completed and documented a specific weekly inspection of the bay?" },
+
+// Topic 6: Site Welfare Facilities
+{ topic: DEFAULT_TOPICS[5], type: "Documentation", text: "Has a TW design been produced for the foundations and stacking of site cabins?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are the cabin foundations (sleeper / concrete pad) level and on verified stable ground?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are stacked multi-story cabins secured together using designed twist-locks or bolts?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are external staircases securely fixed, leveled, and fitted with continuous handrails?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are tie-downs or anchors installed if required by the wind-loading assessment?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are temporary water and waste pipe connections suspended safely to prevent damage?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Is temporary hoarding or skirting installed around the base to prevent unauthorized access under units?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Is there any evidence of ground settlement or cracking around the cabin bases?" },
+{ topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are lifting eyes on the cabins visually inspected and free from structural rust/damage?" },
+{ topic: DEFAULT_TOPICS[5], type: "Documentation", text: "Has the temporary electrical supply to the welfare block been certified and signed off?" },
+
+// Topic 7: Structural Propping
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Is a structural engineer / TWC approved design drawing available for all propping?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are structural steel needles fully supported and secured against lateral movement?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are all Acrow props installed plumb (vertically straight) without deviation?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are prop head plates and base plates in full, flush contact with the load bearing surfaces?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are timber wedges/packers structurally sound (not split) and nailed into position?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Is timber lacing and bracing installed across props to prevent buckling?" },
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has the floor slab load-bearing capacity been verified before props were tensioned?" },
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has a 'Permit to Load' been issued by the TWC before dismantling the existing masonry?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are the threads and pins on all props in good condition (not bent or stripped)?" },
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Are daily checks conducted to ensure props haven't loosened due to vibration?" },
+
+// Topic 8: Signage & Traffic Management
+{ topic: DEFAULT_TOPICS[7], type: "Documentation", text: "Are temporary concrete barriers (e.g. TVCBs) installed as per the traffic management design?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are water-filled barriers filled to the correct capacity for impact resistance?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are temporary lighting towers situated on level, stable ground away from excavations?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Have temporary road signs been adequately sandbagged or fixed to resist wind loads?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are pedestrian walkways physically segregated from plant routes using rigid barriers?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Is temporary access bridging over trenches robust, secured, and fitted with handrails?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are all temporary ground protection mats (bog mats) linked and stable under traffic?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are overhead GS6 goalposts correctly positioned, weighted, and indicating safe heights?" },
+{ topic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Is reflective material on temporary barriers clean and visible for night works?" },
+{ topic: DEFAULT_TOPICS[7], type: "Documentation", text: "Is a routine maintenance log kept for the repositioning of temporary traffic measures?" },
+
+// Topic 9: Tower Cranes & Lifting Bases
+{ topic: DEFAULT_TOPICS[8], type: "Documentation", text: "Has the crane base / grillage design been independently checked (Category 3 check if required)?" },
+{ topic: DEFAULT_TOPICS[8], type: "Documentation", text: "Are ground bearing pressure (CBR) test results documented before base installation?" },
+{ topic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Are holding-down bolts visually intact and torqued as per manufacturer specifications?" },
+{ topic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Is the crane grillage and surrounding concrete base free from severe cracking or settlement?" },
+{ topic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Is the temporary access scaffold attached to the crane mast compliant with the TW design?" },
+{ topic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Are crane mast tie-ins to the permanent structure secured and inspected?" },
+{ topic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Are counterweights securely positioned and verified against the lifting plan?" },
+{ topic: DEFAULT_TOPICS[8], type: "Documentation", text: "Has a formal handover certificate been issued by the crane installation team?" },
+{ topic: DEFAULT_TOPICS[8], type: "Documentation", text: "Is lightning protection temporarily bonded to the crane structure and tested?" },
+{ topic: DEFAULT_TOPICS[8], type: "Documentation", text: "Is there an active Lifting Operations Permit signed by the Appointed Person?" },
+
+// Topic 10: General TW Register
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Is the Principal Contractor’s Temporary Works Register up to date for this site?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Is a formal letter of appointment on file for the Temporary Works Coordinator (TWC)?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Is a formal letter of appointment on file for the Temporary Works Supervisor (TWS)?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are design briefs correctly completed and signed for all Category 1, 2, and 3 TW items?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are the design checks (independent or otherwise) formally logged on the register?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are all issued 'Permits to Load' and 'Permits to Dismantle' filed and accessible?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Have specific TW Toolbox Talks been delivered to operatives constructing the temporary works?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Do the sub-contractors' RAMS explicitly acknowledge the temporary works procedures?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are any design modifications authorized and re-issued by the TWC before implementation?" },
+{ topic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are all TWS field inspection reports safely stored for audit compliance?" }
+];
+
+let questionsList = DEFAULT_QUESTIONS.map((q, i) => ({
+id: 'q_' + i, topic: q.topic, type: q.type, text: q.text,
+answer: "", severity: "48h", comment: "", photo: "", idx: i
+}));
+
+let clients = JSON.parse(localStorage.getItem('tw_clients')) || [];
+let sites = JSON.parse(localStorage.getItem('tw_sites')) || [];
+let branding = JSON.parse(localStorage.getItem('tw_branding')) || { title: "TW Field Inspection", subtitle: "BS 5975 System", color: "#78350f" };
+
+let auditorSignature = "";
+let repSignature = "";
+let sigMode = 'auditor';
+let sigDrawing = false;
+let maxUnlockedIndex = 0; // Enforces sequential unlocking
+
+window.onload = function() {
+applyBranding();
+if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e){}
+}
+populateDropdowns();
+render100Questions();
+lucide.createIcons();
+initSignaturePad();
+updateSequentialLocks();
+};
+
+function initSignaturePad() {
+const c = document.getElementById('sigCanvas');
+const getPos = (e) => { const r = c.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+c.addEventListener('pointerdown', (e) => { e.preventDefault(); c.setPointerCapture(e.pointerId); sigDrawing = true; const p = getPos(e); const ctx = c.getContext('2d'); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+c.addEventListener('pointermove', (e) => { if (!sigDrawing) return; e.preventDefault(); const p = getPos(e); const ctx = c.getContext('2d'); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+['pointerup', 'pointercancel'].forEach(ev => c.addEventListener(ev, () => { sigDrawing = false; }));
+}
+function sizeSigCanvas() {
+const c = document.getElementById('sigCanvas');
+const rect = c.getBoundingClientRect();
+c.width = rect.width; c.height = rect.height;
+const ctx = c.getContext('2d');
+ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0f172a';
+}
+function openSigModal(mode) {
+sigMode = mode;
+document.getElementById('sigModalTitle').innerHTML = mode === 'auditor' ? '<i data-lucide="pen-line" class="w-5 h-5 text-amber-700"></i> TWS Signature' : '<i data-lucide="pen-line" class="w-5 h-5 text-amber-700"></i> Site Rep Signature';
+document.getElementById('sigModal').classList.remove('hidden'); document.getElementById('sigModal').classList.add('flex');
+document.body.style.overflow = 'hidden';
+setTimeout(sizeSigCanvas, 50);
+lucide.createIcons();
+}
+function closeSigModal() { document.getElementById('sigModal').classList.add('hidden'); document.getElementById('sigModal').classList.remove('flex'); document.body.style.overflow = ''; }
+function clearSigCanvas() { const c = document.getElementById('sigCanvas'); c.getContext('2d').clearRect(0, 0, c.width, c.height); }
+function saveSignature() {
+const c = document.getElementById('sigCanvas');
+const ctx = c.getContext('2d');
+const data = ctx.getImageData(0, 0, c.width, c.height).data;
+let blank = true;
+for (let i = 3; i < data.length; i += 4) { if (data[i] !== 0) { blank = false; break; } }
+if (blank) { alert('Please draw the signature first.'); return; }
+const sig = c.toDataURL('image/png');
+if (sigMode === 'auditor') { auditorSignature = sig; document.getElementById('sigPreviewImg').src = sig; document.getElementById('sigPreviewBox').classList.remove('hidden'); document.getElementById('sigBtnText').innerText = '✓ Signature captured'; }
+else { repSignature = sig; document.getElementById('repSigPreviewImg').src = sig; document.getElementById('repSigPreviewBox').classList.remove('hidden'); document.getElementById('repSigBtnText').innerText = '✓ Signature captured'; }
+closeSigModal();
+}
+function clearSignature() { auditorSignature = ""; document.getElementById('sigPreviewBox').classList.add('hidden'); document.getElementById('sigBtnText').innerText = 'Tap here to sign'; }
+function clearRepSignature() { repSignature = ""; document.getElementById('repSigPreviewBox').classList.add('hidden'); document.getElementById('repSigBtnText').innerText = 'Tap here for site rep to sign'; }
+
+function applyBranding() {
+document.getElementById('appTitle').innerText = branding.title || "TW Field Inspection";
+document.getElementById('appSubtitle').innerText = branding.subtitle || "BS 5975 System";
+const header = document.getElementById('mainHeader');
+header.style.backgroundColor = branding.color || '#78350f';
+}
+
+function populateDropdowns() {
+const cSel = document.getElementById('selectClient'); cSel.innerHTML = '';
+if(clients.length === 0) cSel.innerHTML = '<option value="">⚠️ No Projects Found</option>';
+else clients.forEach(c => cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+handleClientChange();
+}
+
+function handleClientChange() {
+const cId = document.getElementById('selectClient').value;
+const sSel = document.getElementById('selectSite'); sSel.innerHTML = '';
+const filteredSites = sites.filter(s => s.clientId === cId);
+if(filteredSites.length === 0) sSel.innerHTML = '<option value="">⚠️ No Sites Found</option>';
+else filteredSites.forEach(s => sSel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+}
+
+function render100Questions() {
+const container = document.getElementById('topicsContainer');
+container.innerHTML = '';
+DEFAULT_TOPICS.forEach((topic, tIdx) => {
+const topicQs = questionsList.filter(q => q.topic === topic);
+let qsHtml = '';
+topicQs.forEach((q) => {
+const idx = q.idx;
+const isPhys = q.type === 'Field Verification';
+qsHtml += `
+<div id="q_wrapper_${idx}" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden transition-all duration-300">
+<div class="absolute left-0 top-0 w-1.5 h-full ${isPhys ? 'bg-emerald-500' : 'bg-amber-500'}"></div>
+<div class="pl-2">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${isPhys ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}">${q.type}</span>
+</div>
+<p class="font-bold text-slate-800 text-sm leading-snug">${idx+1}. ${q.text}</p>
+</div>
+<div class="grid grid-cols-3 gap-2 pl-2">
+<button type="button" id="btn_yes_${idx}" onclick="attemptSetAnswer(${idx}, 'Yes')" class="py-2 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm bg-white text-slate-600 border border-slate-300">Yes</button>
+<button type="button" id="btn_no_${idx}" onclick="attemptSetAnswer(${idx}, 'No')" class="py-2 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm bg-white text-slate-600 border border-slate-300">No</button>
+<button type="button" id="btn_na_${idx}" onclick="attemptSetAnswer(${idx}, 'N/A')" class="py-2 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm bg-white text-slate-600 border border-slate-300">N/A</button>
+</div>
+<div id="severityBox_${idx}" class="hidden pl-2 pt-1 border-t border-slate-100 mt-2">
+<label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Risk Urgency Allocation:</label>
+<select onchange="setSeverity(${idx}, this.value)" class="w-full border rounded-lg p-2 text-xs bg-amber-50 font-bold text-amber-900 focus:ring-2 outline-none">
+<option value="48h">🟠 Minor Defect (Remediation Required)</option>
+<option value="Red">🔴 Prohibition (Stop Work / High Risk Failure)</option>
+</select>
+</div>
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 pl-2 pt-2 border-t border-slate-100">
+<!-- Text note is ALWAYS present as requested -->
+<input type="text" id="comment_${idx}" onchange="setComment(${idx}, this.value)" placeholder="Mandatory notes for Non-Conformance, or justification for N/A..." class="flex-grow w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-600 outline-none bg-slate-50" />
+<div class="flex items-center gap-2 w-full sm:w-auto">
+<label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow whitespace-nowrap w-full sm:w-auto">
+<i data-lucide="camera" class="w-4 h-4"></i> Add Photo *
+<input type="file" accept="image/*" class="hidden" onchange="compressAndStorePhoto(${idx}, this)" />
+</label>
+<div id="photo_thumb_box_${idx}" class="hidden flex-shrink-0">
+<img id="photo_thumb_img_${idx}" src="" class="w-9 h-9 object-cover rounded shadow-sm border border-slate-300 cursor-zoom-in" onclick="openLightbox(this.src)" />
+</div>
+</div>
+</div>
+</div>`;
+});
+container.innerHTML += `
+<details id="details_topic_${tIdx}" class="bg-slate-50 rounded-xl border border-slate-300 shadow-sm overflow-hidden" ${tIdx===0?'open':''}>
+<summary class="p-4 bg-white font-bold text-sm text-amber-900 cursor-pointer flex justify-between items-center hover:bg-slate-50 transition border-b border-slate-200">
+<span>${topic}</span>
+<span class="text-[10px] bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg border border-amber-200 uppercase tracking-wider">${topicQs.length} Checks</span>
+</summary>
+<div class="p-3 space-y-3 bg-slate-100">${qsHtml}</div>
+</details>`;
+});
+}
+
+function updateSequentialLocks() {
+// Recalculate which items should be unlocked.
+// Item 0 is always unlocked. Item N is unlocked if Item N-1 has BOTH photo and answer.
+maxUnlockedIndex = 0;
+for (let i = 0; i < questionsList.length; i++) {
+if (questionsList[i].answer && questionsList[i].photo) {
+maxUnlockedIndex = i + 1;
+} else {
+break;
+}
+}
+// Apply UI styling based on maxUnlockedIndex
+for (let i = 0; i < questionsList.length; i++) {
+const wrapper = document.getElementById(`q_wrapper_${i}`);
+if (!wrapper) continue;
+if (i <= maxUnlockedIndex) {
+wrapper.classList.remove('locked-item');
+} else {
+wrapper.classList.add('locked-item');
+}
+}
+// Auto-open accordion if the unlocked item jumps into a new topic
+if (maxUnlockedIndex < questionsList.length) {
+const currentTopicStr = questionsList[maxUnlockedIndex].topic;
+const topicIdx = DEFAULT_TOPICS.indexOf(currentTopicStr);
+if (topicIdx > 0) {
+const detailsEl = document.getElementById(`details_topic_${topicIdx}`);
+if (detailsEl && !detailsEl.open) detailsEl.open = true;
+}
+}
+}
+
+function attemptSetAnswer(idx, val) {
+// 1. Mandatory Photo Rule Enforcement
+if (!questionsList[idx].photo) {
+alert("Rule Enforcement: A photo is mandatory for EVERY TW question before logging an answer. Please capture or upload a photo first.");
+return;
+}
+// 2. Set the answer
+questionsList[idx].answer = val;
+const bYes = document.getElementById(`btn_yes_${idx}`);
+const bNo = document.getElementById(`btn_no_${idx}`);
+const bNa = document.getElementById(`btn_na_${idx}`);
+const sBox = document.getElementById(`severityBox_${idx}`);
+bYes.className = bNo.className = bNa.className = "py-2 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm bg-white text-slate-600 border border-slate-300";
+
+if (val === 'Yes') { bYes.className = "py-2 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm bg-emerald-600 text-white border-transparent"; sBox.classList.add('hidden'); }
+if (val === 'No') { bNo.className = "py-2 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm bg-red-600 text-white border-transparent"; sBox.classList.remove('hidden'); }
+if (val === 'N/A') { bNa.className = "py-2 rounded-lg font-bold text-[11px] sm:text-xs shadow-sm bg-slate-700 text-white border-transparent"; sBox.classList.add('hidden'); }
+
+// 3. Unlock Next Question
+updateSequentialLocks();
+}
+
+function setSeverity(idx, val) { questionsList[idx].severity = val; }
+function setComment(idx, val) { questionsList[idx].comment = val; }
+
+function compressAndStorePhoto(idx, input) {
+if (input.files && input.files[0]) {
+const reader = new FileReader();
+reader.onload = function(e) {
+const img = new Image();
+img.onload = function() {
+const canvas = document.createElement('canvas');
+let width = img.width, height = img.height;
+if (width > 500) { height = Math.round((height * 500) / width); width = 500; }
+canvas.width = width; canvas.height = height;
+canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+questionsList[idx].photo = compressedDataUrl;
+document.getElementById(`photo_thumb_img_${idx}`).src = compressedDataUrl;
+document.getElementById(`photo_thumb_box_${idx}`).classList.remove('hidden');
+
+// If they upload a photo AND already had an answer (unlikely but possible if they changed photo), re-check locks
+updateSequentialLocks();
+};
+img.src = e.target.result;
+};
+reader.readAsDataURL(input.files[0]);
+}
+}
+
+function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightboxModal').classList.remove('hidden'); document.getElementById('lightboxModal').classList.add('flex'); }
+function closeLightbox() { document.getElementById('lightboxModal').classList.add('hidden'); document.getElementById('lightboxModal').classList.remove('flex'); }
+
+async function submitInspection() {
+const btn = document.getElementById('submitBtn');
+const originalText = btn.innerHTML;
+btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Saving TW Report...`;
+btn.disabled = true;
+await new Promise(resolve => setTimeout(resolve, 150));
+
+try {
+const clientId = document.getElementById('selectClient').value;
+const siteId = document.getElementById('selectSite').value;
+const inspectorName = document.getElementById('inputInspectorName').value.trim();
+const inspectorQuals = document.getElementById('inputInspectorQuals').value.trim();
+const inspectorNotes = document.getElementById('inputInspectorNotes').value.trim();
+
+if (!clientId || !siteId || !inspectorName || !inspectorQuals) {
+alert("⚠️ Missing Information: Please fill in Project, Site, TWS Name, and Qualifications.");
+return;
+}
+if (!auditorSignature) {
+alert("⚠️ TWS Signature required: please sign the document before submitting.");
+return;
+}
+
+// Final Validation: Did they answer all 100 questions sequentially?
+const unanswered = questionsList.findIndex(q => !q.answer || !q.photo);
+if (unanswered !== -1) {
+alert(`⚠️ Incomplete Inspection: You stopped at question ${unanswered + 1}. You must complete all questions and provide a photo for each before submitting.`);
+return;
+}
+
+let totalValid = 0; let yesCount = 0; let hasCritical = false;
+questionsList.forEach(q => {
+if (q.answer !== 'N/A') {
+totalValid++;
+if (q.answer === 'Yes') yesCount++;
+if (q.answer === 'No' && q.severity === 'Red') hasCritical = true;
+}
+});
+let score = totalValid > 0 ? Math.round((yesCount / totalValid) * 100) : 0;
+let finalStatus = (score === 100 && !hasCritical) ? "Closed" : "Open";
+
+const newAudit = {
+id: 'a_' + Date.now(),
+clientId,
+siteId,
+date: new Date().toISOString().split('T')[0],
+inspectorName,
+inspectorQuals,
+inspectorNotes,
+auditorSignature,
+siteRepName: document.getElementById('inputSiteRepName').value.trim(),
+siteRepSignature: repSignature,
+score,
+status: finalStatus,
+questions: questionsList
+};
+
+let existing = JSON.parse(localStorage.getItem('tw_audits')) || [];
+existing.push(newAudit);
+try {
+localStorage.setItem('tw_audits', JSON.stringify(existing));
+} catch(e) { throw new Error("Device Memory Full! Please clear old audits from the dashboard."); }
+
+if (supabaseClient) {
+try {
+const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
+await Promise.race([ supabaseClient.from('audits').insert([newAudit]), timeout ]);
+} catch(e) {}
+}
+alert(`✅ Formal TW Report Submitted!\nCompliance Score: ${score}%`);
+window.location.href = 'officerdashboard.html';
+
+} catch (err) {
+alert(`❌ Submission Error: ${err.message}`);
+} finally {
+btn.innerHTML = originalText;
+btn.disabled = false;
+lucide.createIcons();
+}
+}
+</script>
+</body>
+</html>
