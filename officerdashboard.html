@@ -21,7 +21,7 @@ body { background-color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-se
 <header id="mainHeader" class="custom-header p-4 sm:p-6 shadow-md transition-colors duration-300">
 <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 <div class="flex items-center gap-3">
-<div id="logoHeaderBox"><i data-lucide="hard-hat" class="w-8 h-8 text-amber-400"></i></div>
+<div id="logoHeaderBox" class="flex items-center"><i data-lucide="hard-hat" class="w-8 h-8 text-amber-400"></i></div>
 <div>
 <h1 id="appTitle" class="text-2xl font-bold tracking-tight">Temporary Works UK</h1>
 <p id="appSubtitle" class="text-xs opacity-90 mt-0.5">BS 5975 & CDM 2015 Compliance System (TWC Portal)</p>
@@ -58,7 +58,7 @@ body { background-color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-se
 <div id="viewOverview" class="space-y-6">
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-<p class="text-xs font-bold text-slate-400 uppercase tracking-wider">🟢 Compliant / Proceed</p>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wider">🟢 Compliant / Satisfactory</p>
 <h2 id="kpiPassed" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h2>
 <p class="text-xs text-slate-500 mt-2">Verified installations & permits</p>
 </div>
@@ -170,7 +170,7 @@ Review non-compliant items, attach remediation evidence regarding temporary work
 <div><label class="block font-semibold mb-1">Header Text Color</label><input type="color" id="inputBrandTextColor" class="w-full h-10 border rounded p-1 cursor-pointer" /></div>
 </div>
 <div>
-<label class="block font-semibold mb-1">Company Logo</label>
+<label class="block font-semibold mb-1">Company Logo (Best for rectangular/square badges)</label>
 <input type="file" accept="image/*" onchange="handleLogoUpload(this)" class="w-full border rounded p-1.5" />
 <input type="hidden" id="inputBrandLogoUrl" />
 </div>
@@ -180,7 +180,7 @@ Review non-compliant items, attach remediation evidence regarding temporary work
 </div>
 </div>
 
-<!-- DB MODAL (WITH ERROR HANDLING) -->
+<!-- DB MODAL -->
 <div id="dbModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
 <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-3">
 <div class="flex items-center justify-between border-b pb-3">
@@ -261,7 +261,7 @@ const header = document.getElementById('mainHeader');
 header.style.backgroundColor = branding.color || '#78350f';
 header.style.color = branding.textColor || '#ffffff';
 if (branding.logoUrl) {
-document.getElementById('logoHeaderBox').innerHTML = '<img src="' + branding.logoUrl + '" class="w-8 h-8 object-contain rounded bg-white p-0.5 shadow-sm" />';
+document.getElementById('logoHeaderBox').innerHTML = '<img src="' + branding.logoUrl + '" class="max-h-8 w-auto object-contain rounded bg-white p-0.5 shadow-sm" />';
 } else {
 document.getElementById('logoHeaderBox').innerHTML = '<i data-lucide="hard-hat" class="w-8 h-8 text-amber-400"></i>';
 }
@@ -272,10 +272,7 @@ async function fetchData() {
 if (supabaseClient) {
 try {
 const { data: c, error: cErr } = await supabaseClient.from('clients').select('*'); 
-if(cErr) { 
-console.error("Supabase Error on clients", cErr); 
-alert("Cloud Sync Blocked: " + cErr.message + "\n\n(This usually means Row Level Security (RLS) is turned on or the tables haven't been created in your Supabase database yet.)"); 
-}
+if(cErr) console.error("Supabase Error on clients", cErr);
 else if(c) clients = c;
 
 const { data: s, error: sErr } = await supabaseClient.from('sites').select('*'); 
@@ -325,7 +322,6 @@ let passed = 0, orange = 0, red = 0;
 const topicList = [];
 filteredAudits.forEach(a => {
 (a.questions || []).forEach(q => {
-// We map it to baseTopic so that 20 propping items don't create 20 separate bars on the chart.
 const chartTopic = q.baseTopic || q.topic; 
 if (chartTopic && topicList.indexOf(chartTopic) === -1) topicList.push(chartTopic);
 });
@@ -399,7 +395,7 @@ const cl = clients.find(c => c.id === s.clientId) || {};
 
 if (!last) return '<div class="p-3 border border-slate-200 rounded-lg text-xs bg-slate-50"><p class="font-bold text-slate-800">' + s.name + ' (' + (cl.name || '') + ')</p><p class="text-slate-400 mt-1">No inspection history recorded yet.</p></div>';
 
-let totalQs = (last.questions || []).filter(q => q.answer !== 'N/A').length; // exclude N/A skipped items from count
+let totalQs = (last.questions || []).filter(q => q.answer !== 'N/A').length;
 let addressedCount = (last.questions || []).filter(q => q.answer === 'Yes' || q.status === 'Closed').length;
 
 return '<div class="p-4 border border-slate-200 rounded-lg bg-white flex flex-col md:flex-row justify-between items-start md:items-center text-xs gap-3 shadow-sm">' +
@@ -439,7 +435,7 @@ tbody.innerHTML += '<tr class="hover:bg-slate-50 border-b border-slate-100">' +
 
 function addImageToPdf(doc, imageStr, x, y, width, height) {
 if (!imageStr || typeof imageStr !== 'string' || imageStr.indexOf('data:image') !== 0) return false;
-if (imageStr === 'SKIP') return false; // Safety catch for N/A flagged items
+if (imageStr === 'SKIP') return false;
 try {
 let fmt = 'JPEG';
 if (imageStr.indexOf('image/png') !== -1) fmt = 'PNG';
@@ -485,9 +481,9 @@ doc.text('Report Ref: TWR-' + String(audit.id || '').substring(2, 10), 125, 56);
 
 const tableRows = [];
 (audit.questions || []).forEach(q => {
-if (q.photo === 'SKIP') return; // Do not print fully skipped/N/A categories on the front page table
+if (q.photo === 'SKIP') return;
 
-let result = q.answer === 'Yes' ? 'Proceed' : (q.answer === 'No' ? 'Defect' : 'N/A');
+let result = q.answer === 'Yes' ? 'Compliant' : (q.answer === 'No' ? 'Defect' : 'N/A');
 let urgency = q.answer === 'No' ? (q.severity === 'Red' ? 'PROHIBITION' : 'MINOR') : '-';
 let findings = q.comment || '-';
 if (q.photo && q.photo !== 'SKIP') findings += ' [Photo Attached]';
@@ -504,27 +500,28 @@ columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 26 }, 2: { cellWidth: 62 }
 didParseCell: function(data) {
 if (data.section === 'body' && data.column.index === 3) {
 if (data.cell.raw === 'Defect') { data.cell.styles.textColor = [220, 38, 38]; data.cell.styles.fontStyle = 'bold'; }
-if (data.cell.raw === 'Proceed') { data.cell.styles.textColor = [16, 185, 129]; }
+if (data.cell.raw === 'Compliant') { data.cell.styles.textColor = [16, 185, 129]; }
 }
 }
 });
 
+// APPENDIX A: Strictly filter for actual non-conformances (Defects where answer === 'No')
 doc.addPage();
 doc.setFillColor(themeColor);
 doc.rect(0, 0, 210, 20, 'F');
 doc.setTextColor(255, 255, 255);
 doc.setFontSize(13);
 doc.setFont("helvetica", "bold");
-doc.text("Appendix A: Defect Logs & Photographic Evidence", 14, 13);
+doc.text("Appendix A: Non-Conformance & Defect Logs", 14, 13);
 let yPos = 28;
 
-const nonCompliantItems = (audit.questions || []).filter(q => q.answer === 'No' || (q.photo && q.photo !== 'SKIP') || (q.closurePhoto && q.closurePhoto !== 'SKIP'));
+const nonCompliantItems = (audit.questions || []).filter(q => q.answer === 'No');
 
 if (nonCompliantItems.length === 0) {
 doc.setTextColor(100, 100, 100);
 doc.setFontSize(9);
 doc.setFont("helvetica", "normal");
-doc.text("100% Compliant. No defects or photos recorded.", 14, 38);
+doc.text("100% Compliant. No defects or non-conformances recorded.", 14, 38);
 } else {
 doc.setTextColor(40, 40, 40);
 nonCompliantItems.forEach((q, idx) => {
