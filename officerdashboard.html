@@ -261,7 +261,7 @@ const header = document.getElementById('mainHeader');
 header.style.backgroundColor = branding.color || '#78350f';
 header.style.color = branding.textColor || '#ffffff';
 if (branding.logoUrl) {
-document.getElementById('logoHeaderBox').innerHTML = '<img src="' + branding.logoUrl + '" class="max-h-8 w-auto object-contain rounded bg-white p-0.5 shadow-sm" />';
+document.getElementById('logoHeaderBox').innerHTML = '<img src="' + branding.logoUrl + '" class="h-10 max-w-[120px] object-contain rounded bg-white p-1 shadow-sm" />';
 } else {
 document.getElementById('logoHeaderBox').innerHTML = '<i data-lucide="hard-hat" class="w-8 h-8 text-amber-400"></i>';
 }
@@ -454,8 +454,8 @@ doc.setFillColor(themeColor);
 doc.rect(0, 0, 210, 30, 'F');
 let textStartX = 14;
 if (branding.logoUrl) {
-const logoSuccess = addImageToPdf(doc, branding.logoUrl, 12, 4, 22, 22);
-if (logoSuccess) textStartX = 38;
+const logoSuccess = addImageToPdf(doc, branding.logoUrl, 12, 4, 32, 12);
+if (logoSuccess) textStartX = 48;
 }
 
 doc.setTextColor(255, 255, 255);
@@ -505,38 +505,45 @@ if (data.cell.raw === 'Compliant') { data.cell.styles.textColor = [16, 185, 129]
 }
 });
 
-// APPENDIX A: Strictly filter for actual non-conformances (Defects where answer === 'No')
+// APPENDIX A: Photographic Evidence Log (Includes both compliant photos and defects)
 doc.addPage();
 doc.setFillColor(themeColor);
 doc.rect(0, 0, 210, 20, 'F');
 doc.setTextColor(255, 255, 255);
 doc.setFontSize(13);
 doc.setFont("helvetica", "bold");
-doc.text("Appendix A: Non-Conformance & Defect Logs", 14, 13);
+doc.text("Appendix A: Field Photographic Evidence & Defect Logs", 14, 13);
 let yPos = 28;
 
-const nonCompliantItems = (audit.questions || []).filter(q => q.answer === 'No');
+const photoItems = (audit.questions || []).filter(q => (q.photo && q.photo !== 'SKIP') || (q.closurePhoto && q.closurePhoto !== 'SKIP'));
 
-if (nonCompliantItems.length === 0) {
+if (photoItems.length === 0) {
 doc.setTextColor(100, 100, 100);
 doc.setFontSize(9);
 doc.setFont("helvetica", "normal");
-doc.text("100% Compliant. No defects or non-conformances recorded.", 14, 38);
+doc.text("No photographic evidence recorded in this inspection.", 14, 38);
 } else {
 doc.setTextColor(40, 40, 40);
-nonCompliantItems.forEach((q, idx) => {
-if (yPos > 190) { doc.addPage(); yPos = 25; }
+photoItems.forEach((q, idx) => {
+if (yPos > 185) { doc.addPage(); yPos = 25; }
 doc.setFontSize(9);
 doc.setFont("helvetica", "bold");
 const splitTitle = doc.splitTextToSize((idx + 1) + '. [' + q.topic + '] - ' + q.text, 180);
 doc.text(splitTitle, 14, yPos);
 yPos += (splitTitle.length * 4.5) + 2;
+
 doc.setFontSize(8);
 doc.setFont("helvetica", "normal");
+const isDefect = q.answer === 'No';
+doc.text('Status: ' + (isDefect ? 'DEFECT / NON-COMPLIANT' : 'VERIFIED COMPLIANT'), 14, yPos);
+yPos += 5;
 doc.text('TWS Field Finding: ' + (q.comment || 'No comment provided.'), 14, yPos);
 yPos += 5;
+
+if (isDefect) {
 doc.text('TWC Remediation Note: ' + (q.closureNote || 'Pending review.'), 14, yPos);
-yPos += 7;
+yPos += 6;
+}
 
 let imageRowHeight = 0;
 if (q.photo && q.photo !== 'SKIP') {
@@ -834,7 +841,7 @@ const img = new Image();
 img.onload = () => {
 const canvas = document.createElement('canvas');
 let width = img.width, height = img.height;
-if (width > 250) { height = Math.round((height * 250) / width); width = 250; }
+if (width > 300) { height = Math.round((height * 300) / width); width = 300; }
 canvas.width = width; canvas.height = height;
 canvas.getContext('2d').drawImage(img, 0, 0, width, height);
 document.getElementById('inputBrandLogoUrl').value = canvas.toDataURL('image/png');
