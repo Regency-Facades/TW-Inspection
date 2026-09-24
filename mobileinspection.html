@@ -276,17 +276,37 @@ let sigMode = 'auditor';
 let sigDrawing = false;
 let maxUnlockedIndex = 0; // Enforces sequential unlocking
 
-window.onload = function() {
+window.onload = async function() {
 applyBranding();
 if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
 try { supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e){}
 }
+await fetchData();
 populateDropdowns();
 render100Questions();
 lucide.createIcons();
 initSignaturePad();
 updateSequentialLocks();
 };
+
+async function fetchData() {
+if (supabaseClient) {
+try {
+const { data: c } = await supabaseClient.from('clients').select('*'); 
+if(c && c.length > 0) {
+clients = c;
+localStorage.setItem('tw_clients', JSON.stringify(clients));
+}
+const { data: s } = await supabaseClient.from('sites').select('*'); 
+if(s && s.length > 0) {
+sites = s;
+localStorage.setItem('tw_sites', JSON.stringify(sites));
+}
+} catch(e) {
+console.error("Error fetching data:", e);
+}
+}
+}
 
 function initSignaturePad() {
 const c = document.getElementById('sigCanvas');
