@@ -12,7 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
 body { background-color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
-.custom-header { background-color: #78350f; color: #ffffff; } /* amber-900 theme */
+.custom-header { background-color: #78350f; color: #ffffff; } 
 </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
@@ -234,31 +234,8 @@ let categoryChartInst = null;
 let typeChartInst = null;
 let activeInspectAuditId = null;
 
-// Temporary Works Focus Topics (UPDATED TOPIC 7)
-const DEFAULT_TOPICS = [
-"1. Scaffolding & Edge Protection (TW Item)",
-"2. Falsework & Formwork (TW Item)",
-"3. Groundworks & Trench Support (TW Item)",
-"4. Hoardings & Site Fencing (TW Item)",
-"5. Loading Bays & Working Platforms (TW Item)",
-"6. Site Welfare Facilities (TW Item)",
-"7. Structural Propping & Slab Support (TW Item)", // <--- RENAMED
-"8. Signage & Traffic Management (TW Item)",
-"9. Tower Cranes & Lifting Bases (TW Item)",
-"10. General TW Register & Procedure (Documentation)"
-];
-
-function loadEngineTopics() {
-try {
-const s = JSON.parse(localStorage.getItem('tw_question_engine'));
-if (s && Array.isArray(s.topics) && s.topics.length) return s.topics;
-} catch(e) {}
-return DEFAULT_TOPICS.slice();
-}
-
-let TOPICS = loadEngineTopics();
-let clients = JSON.parse(localStorage.getItem('tw_clients')) || [{ id: 'c1', name: 'Major Build PLC', rep: 'P. Manager', email: 'pm@majorbuild.co.uk' }];
-let sites = JSON.parse(localStorage.getItem('tw_sites')) || [{ id: 's1', clientId: 'c1', name: 'City Centre Plot 1' }];
+let clients = JSON.parse(localStorage.getItem('tw_clients')) || [];
+let sites = JSON.parse(localStorage.getItem('tw_sites')) || [];
 let audits = JSON.parse(localStorage.getItem('tw_audits')) || [];
 let branding = JSON.parse(localStorage.getItem('tw_branding')) || {
 title: "Temporary Works UK",
@@ -335,7 +312,6 @@ document.getElementById('tabExplorer').className = "px-3.5 py-1.5 rounded-md fon
 }
 
 function renderDashboard() {
-TOPICS = loadEngineTopics();
 const selectedClient = document.getElementById('clientFilter').value;
 const selectedSite = document.getElementById('siteFilter').value;
 
@@ -346,10 +322,12 @@ return mc && ms;
 });
 
 let passed = 0, orange = 0, red = 0;
-const topicList = TOPICS.slice();
+const topicList = [];
 filteredAudits.forEach(a => {
 (a.questions || []).forEach(q => {
-if (q.topic && topicList.indexOf(q.topic) === -1) topicList.push(q.topic);
+// We map it to baseTopic so that 20 propping items don't create 20 separate bars on the chart.
+const chartTopic = q.baseTopic || q.topic; 
+if (chartTopic && topicList.indexOf(chartTopic) === -1) topicList.push(chartTopic);
 });
 });
 
@@ -360,16 +338,17 @@ let physPass = 0, physTot = 0, paperPass = 0, paperTot = 0;
 
 filteredAudits.forEach(a => {
 (a.questions || []).forEach(q => {
+const chartTopic = q.baseTopic || q.topic;
 if (q.answer === 'Yes') {
 passed++;
-if (topicPasses[q.topic]) topicPasses[q.topic].pass++;
+if (topicPasses[chartTopic]) topicPasses[chartTopic].pass++;
 if (q.type === 'Field Verification') physPass++; else paperPass++;
 }
 if (q.answer === 'No') {
 if (q.severity === 'Red') red++; else orange++;
 }
 if (q.answer !== 'N/A') {
-if (topicPasses[q.topic]) topicPasses[q.topic].total++;
+if (topicPasses[chartTopic]) topicPasses[chartTopic].total++;
 if (q.type === 'Field Verification') physTot++; else paperTot++;
 }
 });
@@ -420,14 +399,14 @@ const cl = clients.find(c => c.id === s.clientId) || {};
 
 if (!last) return '<div class="p-3 border border-slate-200 rounded-lg text-xs bg-slate-50"><p class="font-bold text-slate-800">' + s.name + ' (' + (cl.name || '') + ')</p><p class="text-slate-400 mt-1">No inspection history recorded yet.</p></div>';
 
-let totalQs = (last.questions || []).length;
+let totalQs = (last.questions || []).filter(q => q.answer !== 'N/A').length; // exclude N/A skipped items from count
 let addressedCount = (last.questions || []).filter(q => q.answer === 'Yes' || q.status === 'Closed').length;
 
 return '<div class="p-4 border border-slate-200 rounded-lg bg-white flex flex-col md:flex-row justify-between items-start md:items-center text-xs gap-3 shadow-sm">' +
 '<div>' +
 '<p class="font-bold text-slate-800 text-sm mb-1">' + s.name + ' <span class="text-amber-800 font-medium">(' + (cl.name || '') + ')</span></p>' +
 '<p class="text-slate-500">Last Inspection: <span class="font-medium">' + last.date + '</span> | Score: <strong class="text-amber-900 text-sm">' + last.score + '%</strong></p>' +
-'<p class="text-[11px] text-emerald-700 mt-1 font-medium bg-emerald-50 inline-block px-2 py-0.5 rounded border border-emerald-200">✓ ' + addressedCount + ' of ' + totalQs + ' TW criteria verified or remediated</p>' +
+'<p class="text-[11px] text-emerald-700 mt-1 font-medium bg-emerald-50 inline-block px-2 py-0.5 rounded border border-emerald-200">✓ ' + addressedCount + ' of ' + totalQs + ' applicable TW criteria verified or remediated</p>' +
 '</div>' +
 '<span class="px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider text-[10px] border ' + (last.status === 'Closed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300') + '">' + (last.status || 'Open (Pending)') + '</span>' +
 '</div>';
@@ -460,6 +439,7 @@ tbody.innerHTML += '<tr class="hover:bg-slate-50 border-b border-slate-100">' +
 
 function addImageToPdf(doc, imageStr, x, y, width, height) {
 if (!imageStr || typeof imageStr !== 'string' || imageStr.indexOf('data:image') !== 0) return false;
+if (imageStr === 'SKIP') return false; // Safety catch for N/A flagged items
 try {
 let fmt = 'JPEG';
 if (imageStr.indexOf('image/png') !== -1) fmt = 'PNG';
@@ -505,11 +485,13 @@ doc.text('Report Ref: TWR-' + String(audit.id || '').substring(2, 10), 125, 56);
 
 const tableRows = [];
 (audit.questions || []).forEach(q => {
+if (q.photo === 'SKIP') return; // Do not print fully skipped/N/A categories on the front page table
+
 let result = q.answer === 'Yes' ? 'Proceed' : (q.answer === 'No' ? 'Defect' : 'N/A');
 let urgency = q.answer === 'No' ? (q.severity === 'Red' ? 'PROHIBITION' : 'MINOR') : '-';
 let findings = q.comment || '-';
-if (q.photo) findings += ' [Photo Attached]';
-tableRows.push([q.topic.split('.')[1] || q.topic, q.type, q.text, result, urgency, findings]);
+if (q.photo && q.photo !== 'SKIP') findings += ' [Photo Attached]';
+tableRows.push([q.topic.replace(' (TW Item)', ''), q.type, q.text, result, urgency, findings]);
 });
 
 doc.autoTable({
@@ -536,7 +518,8 @@ doc.setFont("helvetica", "bold");
 doc.text("Appendix A: Defect Logs & Photographic Evidence", 14, 13);
 let yPos = 28;
 
-const nonCompliantItems = (audit.questions || []).filter(q => q.answer === 'No' || q.photo || q.closurePhoto);
+const nonCompliantItems = (audit.questions || []).filter(q => q.answer === 'No' || (q.photo && q.photo !== 'SKIP') || (q.closurePhoto && q.closurePhoto !== 'SKIP'));
+
 if (nonCompliantItems.length === 0) {
 doc.setTextColor(100, 100, 100);
 doc.setFontSize(9);
@@ -559,10 +542,10 @@ doc.text('TWC Remediation Note: ' + (q.closureNote || 'Pending review.'), 14, yP
 yPos += 7;
 
 let imageRowHeight = 0;
-if (q.photo) {
+if (q.photo && q.photo !== 'SKIP') {
 if(addImageToPdf(doc, q.photo, 14, yPos, 50, 38)) { doc.setFontSize(7); doc.setTextColor(100,100,100); doc.text("Field Evidence", 14, yPos + 42); imageRowHeight = 46; }
 }
-if (q.closurePhoto) {
+if (q.closurePhoto && q.closurePhoto !== 'SKIP') {
 if(addImageToPdf(doc, q.closurePhoto, 72, yPos, 50, 38)) { doc.setFontSize(7); doc.setTextColor(100,100,100); doc.text("Remediation Evidence", 72, yPos + 42); imageRowHeight = 46; }
 }
 yPos += (imageRowHeight > 0 ? imageRowHeight + 4 : 4);
@@ -633,7 +616,7 @@ const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
 const nonCompliant = (audit.questions || []).filter(q => q.answer === 'No');
 let findingsText = '• 100% Compliant verified.';
 if (nonCompliant.length > 0) {
-findingsText = nonCompliant.map((q, idx) => `${idx + 1}. [${q.severity === 'Red' ? 'PROHIBITION' : 'DEFECT'}] ${q.topic.split('.')[1] || q.topic}\nItem: ${q.text}`).join('\n');
+findingsText = nonCompliant.map((q, idx) => `${idx + 1}. [${q.severity === 'Red' ? 'PROHIBITION' : 'DEFECT'}] ${q.topic.replace(' (TW Item)', '')}\nItem: ${q.text}`).join('\n');
 }
 
 const shareText = `Dear ${c.rep || 'Site Management'},\n\nRE: TEMPORARY WORKS INSPECTION REPORT\nSite: ${s.name}\nDate: ${audit.date}\nScore: ${audit.score}%\n\nPlease find attached the official TW inspection certificate.\n\nDEFECTS NOTED:\n${findingsText}`;
@@ -690,14 +673,14 @@ bodyHtml += '<div class="p-4 border rounded-xl bg-slate-50 shadow-sm relative ov
 '<div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-3 rounded-lg border border-slate-200">' +
 '<div><p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">TWS Field Finding</p>' +
 '<p class="text-xs text-slate-800 italic mb-2">"' + (q.comment || 'No comment.') + '"</p>' +
-(q.photo ? '<img src="' + q.photo + '" class="w-20 h-20 object-cover rounded-lg border shadow-sm cursor-zoom-in" onclick="openLightbox(this.src)" />' : '<p class="text-[10px] text-slate-400">No field photo.</p>') +
+((q.photo && q.photo !== 'SKIP') ? '<img src="' + q.photo + '" class="w-20 h-20 object-cover rounded-lg border shadow-sm cursor-zoom-in" onclick="openLightbox(this.src)" />' : '<p class="text-[10px] text-slate-400">No field photo.</p>') +
 '</div>' +
 '<div class="border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-4">' +
 '<p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">TWC Remediation Action</p>' +
 '<textarea id="closure_note_' + q.id + '" placeholder="Enter TWC sign-off remarks..." rows="2" class="w-full border rounded-lg p-2 text-xs bg-slate-50 focus:ring-2 focus:ring-amber-500 mb-2">' + (q.closureNote || '') + '</textarea>' +
 '<div class="flex items-center gap-3">' +
 '<label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm">Attach Photo<input type="file" accept="image/*" class="hidden" onchange="compressAndSetClosurePhoto(\'' + auditId + '\', \'' + q.id + '\', this)" /></label>' +
-'<div id="closure_photo_container_' + q.id + '">' + (q.closurePhoto ? '<img src="' + q.closurePhoto + '" class="w-10 h-10 object-cover rounded border shadow-sm cursor-zoom-in" onclick="openLightbox(this.src)" />' : '') + '</div>' +
+'<div id="closure_photo_container_' + q.id + '">' + ((q.closurePhoto && q.closurePhoto !== 'SKIP') ? '<img src="' + q.closurePhoto + '" class="w-10 h-10 object-cover rounded border shadow-sm cursor-zoom-in" onclick="openLightbox(this.src)" />' : '') + '</div>' +
 '</div></div></div></div></div>';
 });
 bodyHtml += '</div>';
