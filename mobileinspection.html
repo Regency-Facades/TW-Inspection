@@ -57,8 +57,7 @@ details > summary::-webkit-details-marker { display: none; }
 </div>
 
 <div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-[11px] border border-blue-200 font-medium leading-relaxed">
-<strong>Strict Enforcement Rule:</strong> Inspections must be completed in sequential order. A photograph is strictly mandatory for every single TW item before an answer can be logged. <br><br>
-<span class="text-blue-900 font-bold">New:</span> Use the <span class="bg-amber-600 text-white px-1.5 py-0.5 rounded text-[9px] uppercase">Add Item</span> button to inspect multiple locations (e.g. 10 different props). Use the <span class="bg-slate-300 text-slate-700 px-1.5 py-0.5 rounded text-[9px] uppercase">Mark N/A</span> button to bypass an entire category if it is not on site.
+<strong>Inspection Guide:</strong> Complete items sequentially. A photo is mandatory for each checked item. Use <span class="bg-amber-600 text-white px-1.5 py-0.5 rounded text-[9px] uppercase">Add Item</span> to inspect multiple areas (e.g. different car park propping bays) or <span class="bg-slate-300 text-slate-700 px-1.5 py-0.5 rounded text-[9px] uppercase">Mark N/A</span> to bypass inactive categories.
 </div>
 
 <!-- QUESTIONS ACCORDION -->
@@ -163,98 +162,98 @@ const DEFAULT_TOPICS = [
 
 const DEFAULT_QUESTIONS_TEMPLATE = [
 // Topic 1
-{ baseTopic: DEFAULT_TOPICS[0], type: "Documentation", text: "Has the scaffold design been formally approved by the TWC and is a copy available?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are all base plates and sole boards securely positioned on solid ground?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are structural ties installed to the building fabric exactly as per the TW design?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Is ledger and façade bracing installed correctly continuously across the structure?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are standard double handrails and toe-boards present on all working levels?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are all scaffold boards fully supported, tied down, and free from damage/rot?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are internal ladder access bays correctly segregated with self-closing gates?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Is debris netting or brick-guard protection installed and tightly secured?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Documentation", text: "Is a valid, green Scafftag visible at all access points and updated within 7 days?" },
-{ baseTopic: DEFAULT_TOPICS[0], type: "Documentation", text: "Is the Safe Working Load (SWL) clearly displayed and not being exceeded on platforms?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Documentation", text: "Is the approved scaffold design drawing available on site and verified by the TWC?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are sole boards and base plates positioned firmly on solid ground without sinking or shifting?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are scaffold ties securely fixed to the building structure (e.g., through-ties or box ties) as per the design?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Is façade and ledger bracing installed continuously and securely across the elevation?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are standard double handrails and toe-boards present on all active working platforms?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are all scaffold boards fully supported, secured against wind lift, and free from damage?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Are internal ladder access bays correctly segregated with self-closing trapdoor gates?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Field Verification", text: "Is debris netting or brick-guard protection installed tightly across open elevations?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Documentation", text: "Is a valid, green Scafftag visible at all primary access points and updated within 7 days?" },
+{ baseTopic: DEFAULT_TOPICS[0], type: "Documentation", text: "Is the Safe Working Load (SWL) clearly displayed and not being exceeded on working lifts?" },
 // Topic 2
 { baseTopic: DEFAULT_TOPICS[1], type: "Documentation", text: "Is there a TWC approved design drawing available on site for the falsework layout?" },
 { baseTopic: DEFAULT_TOPICS[1], type: "Documentation", text: "Has a formal 'Permit to Load' been issued by the TWC prior to concrete pour?" },
-{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Is the ground bearing capacity verified and suitable for the falsework sole plates?" },
-{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are all props plumb, adequately braced, and fully seated on node points?" },
-{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are u-heads, pins, and wedges securely tightened and free of physical defects?" },
-{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Is temporary edge protection built into the formwork decking prior to access?" },
-{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are concrete pour rates strictly monitored to prevent exceeding hydraulic formwork pressure?" },
+{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Is the ground bearing capacity verified and suitable for falsework base jacks?" },
+{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are all falsework props plumb, adequately laced/braced, and fully seated on node points?" },
+{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are u-heads, pins, and wedges securely tightened and free of physical damage or corrosion?" },
+{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Is temporary edge protection built into formwork decks prior to operative access?" },
+{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are concrete pour rates monitored to prevent exceeding maximum allowable pour pressures?" },
 { baseTopic: DEFAULT_TOPICS[1], type: "Documentation", text: "Has a formal 'Permit to Strike' / dismantle been issued by the TWC?" },
-{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are struck materials cleared safely without overloading the newly poured slab?" },
+{ baseTopic: DEFAULT_TOPICS[1], type: "Field Verification", text: "Are struck materials cleared safely without overloading newly poured concrete slabs?" },
 { baseTopic: DEFAULT_TOPICS[1], type: "Documentation", text: "Are daily visual inspections recorded by the TWS during active falsework operations?" },
 // Topic 3
-{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Has a temporary works design been issued for trench shoring exceeding 1.2m depth?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are trench boxes, drag boxes, or sheet piles installed precisely as per the design?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are physical hard barriers installed at least 1m away from the excavation edge?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Is excavated spoil and heavy plant kept outside the zone of influence (45-degree line)?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are ground water ingress levels controlled (e.g. pumps operating and discharged safely)?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are safe, tied ladder access points provided every 15 meters within the trench?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Are underground services physically marked and isolated prior to machine excavation?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Is a valid CAT & Genny scan logged and attached to the Permit to Dig?" },
-{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Is the formal Permit to Dig active, signed, and within its expiry timeframe?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Has a temporary works design been issued for trench shoring exceeding 1.2m in depth?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are trench boxes, hydraulic shores, or sheet piles installed precisely as per the design?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are physical hard barriers installed at least 2m away from the open excavation edge?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Is excavated spoil and heavy plant kept outside the calculated zone of influence?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are ground water ingress levels controlled (e.g. sump pumps operating and discharging safely)?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Field Verification", text: "Are safe, tied ladder access points provided securely inside excavations?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Are underground utility services physically marked and isolated prior to machine digging?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Is a valid CAT & Genny utility scan logged and attached to the Permit to Dig?" },
+{ baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Is the formal Permit to Dig active, signed, and within its authorized expiry timeframe?" },
 { baseTopic: DEFAULT_TOPICS[2], type: "Documentation", text: "Are statutory daily excavation inspection registers completed before operative entry?" },
 // Topic 4
 { baseTopic: DEFAULT_TOPICS[3], type: "Documentation", text: "Has the perimeter hoarding been designed to withstand site-specific wind loading calculations?" },
-{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are hoarding posts driven to the correct depth or supported by adequate, designed ballast block weights?" },
+{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are hoarding posts embedded correctly or supported by approved designed ballast blocks?" },
 { baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are all timber or steel panels securely fixed with no loose sections or gaps?" },
 { baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are vehicle and pedestrian access gates structurally sound and secured when closed?" },
-{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is all statutory site signage (warnings, PPE) securely affixed to the hoarding?" },
-{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is the hoarding visually free from collision damage from plant or public vehicles?" },
+{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is statutory site safety signage securely affixed to perimeter hoarding?" },
+{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is hoarding visually free from collision damage caused by site plant or public vehicles?" },
 { baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Where Heras fencing is used, are double clips applied and stabilized with angled braces?" },
-{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is debris netting installed on fencing where dust/debris could affect the public?" },
-{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are temporary lighting units securely attached to hoarding without risk of collapse?" },
+{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Is debris netting installed on fencing where dust/debris could affect public areas?" },
+{ baseTopic: DEFAULT_TOPICS[3], type: "Field Verification", text: "Are temporary security lighting units securely mounted without risk of falling?" },
 { baseTopic: DEFAULT_TOPICS[3], type: "Documentation", text: "Is a weekly perimeter security and structural stability inspection logged?" },
 // Topic 5
 { baseTopic: DEFAULT_TOPICS[4], type: "Documentation", text: "Is a specific temporary works design approved for the loading bay structure?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the Safe Working Load (SWL) prominently displayed on a sign at the bay?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are block/brick materials loaded uniformly to prevent point-loading failure?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the up-and-over gate or safety barrier fully operational and used correctly?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are the base plates and ledger bracing beneath the bay verified as fully intact?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the bay decking completely secure with no trip hazards or gaps?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are specific wall ties connecting the bay to the main structure installed as designed?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is debris netting installed securely around the lower sections of the bay?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is access restricted only to authorized personnel during lifting operations?" },
-{ baseTopic: DEFAULT_TOPICS[4], type: "Documentation", text: "Has the TWS completed and documented a specific weekly inspection of the bay?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the Safe Working Load (SWL) prominently displayed on a sign at the loading bay?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are palletized materials loaded uniformly to prevent point-loading failure?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the up-and-over safety gate or barrier fully operational and used correctly?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are base plates and ledger bracing beneath the loading platform verified as fully intact?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is the loading platform decking completely secure with no trip hazards or gaps?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Are wall ties connecting the loading bay to the permanent structure installed as designed?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is debris netting installed securely around lower sections of the loading bay?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Field Verification", text: "Is access restricted exclusively to authorized personnel during lifting operations?" },
+{ baseTopic: DEFAULT_TOPICS[4], type: "Documentation", text: "Has the TWS completed and documented a specific weekly inspection of the loading bay?" },
 // Topic 6
-{ baseTopic: DEFAULT_TOPICS[5], type: "Documentation", text: "Has a TW design been produced for the foundations and stacking of site cabins?" },
-{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are the cabin foundations (sleeper / concrete pad) level and on verified stable ground?" },
-{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are stacked multi-story cabins secured together using designed twist-locks or bolts?" },
+{ baseTopic: DEFAULT_TOPICS[5], type: "Documentation", text: "Has a TW design been produced for the foundations and stacking of site welfare cabins?" },
+{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are cabin foundations (sleeper pads / concrete blocks) level and on stable ground?" },
+{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are stacked multi-story cabins secured together using designed twist-locks or heavy bolts?" },
 { baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are external staircases securely fixed, leveled, and fitted with continuous handrails?" },
-{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are tie-downs or anchors installed if required by the wind-loading assessment?" },
+{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are wind tie-downs or anchor cables installed where required by wind loading assessments?" },
 { baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are temporary water and waste pipe connections suspended safely to prevent damage?" },
-{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Is temporary hoarding or skirting installed around the base to prevent unauthorized access under units?" },
-{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Is there any evidence of ground settlement or cracking around the cabin bases?" },
-{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are lifting eyes on the cabins visually inspected and free from structural rust/damage?" },
+{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Is perimeter skirting installed around cabin bases to prevent unauthorized access underneath?" },
+{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Is there any evidence of ground settlement or cracking around cabin support pads?" },
+{ baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are cabin lifting points visually inspected and free from structural rust or damage?" },
 { baseTopic: DEFAULT_TOPICS[5], type: "Documentation", text: "Has the temporary electrical supply to the welfare block been certified and signed off?" },
-// Topic 7 - STRUCTURAL PROPPING
-{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Is a structural engineer / TWC approved design drawing available for all slab support/propping?" },
-{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are structural steel or timber needles fully supported against lateral movement (e.g., under slabs)?" }, 
-{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are all Acrow props installed plumb (vertically straight) without deviation?" },
-{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are prop head plates and base plates in full, flush contact with the load bearing surfaces?" },
-{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are timber wedges/packers structurally sound (not split) and nailed into position if used?" },
-{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Is scaffolding tube or timber lacing and bracing installed across props to prevent buckling?" }, 
-{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has the concrete floor slab load-bearing capacity been verified before props were tensioned?" },
-{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has a 'Permit to Load' been issued by the TWC before applying load to the temporary structure?" },
-{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are the threads and pins on all props in good condition (not bent or stripped)?" },
-{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Are daily checks conducted to ensure props haven't loosened due to vibration (e.g., from car park traffic)?" }, 
+// Topic 7 - STRUCTURAL PROPPING & SLAB SUPPORT (Updated with practical UK site language)
+{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Is a structural engineer / TWC approved design drawing available on site for this propping layout?" },
+{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are timber headbeams (runners) sitting flat and fully supported against the concrete ceiling without slipping?" }, 
+{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are all Acrow props installed plumb (vertically straight) without bending or tilting?" },
+{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are prop top headplates and bottom baseplates making full, flush contact with support surfaces?" },
+{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are small wooden packing shims/wedges solid (not split) and tight so nothing is loose?" },
+{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are scaffold tubes used as horizontal/diagonal lacing and bracing securely attached across props to stop buckling?" }, 
+{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has the lower floor slab load-bearing capacity been verified before tensioning props above?" },
+{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has a formal 'Permit to Load' been issued by the TWC before applying load to this propping?" },
+{ baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are prop pins, threads, and adjustment nuts in good working condition (not bent or stripped)?" },
+{ baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Are routine checks conducted to ensure props haven't loosened due to vibration (e.g., from traffic)?" }, 
 // Topic 8
-{ baseTopic: DEFAULT_TOPICS[7], type: "Documentation", text: "Are temporary concrete barriers (e.g. TVCBs) installed as per the traffic management design?" },
-{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are water-filled barriers filled to the correct capacity for impact resistance?" },
+{ baseTopic: DEFAULT_TOPICS[7], type: "Documentation", text: "Are temporary concrete safety barriers (TVCBs) installed as per traffic management plans?" },
+{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are water-filled traffic barriers filled to the correct capacity for impact protection?" },
 { baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are temporary lighting towers situated on level, stable ground away from excavations?" },
-{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Have temporary road signs been adequately sandbagged or fixed to resist wind loads?" },
-{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are pedestrian walkways physically segregated from plant routes using rigid barriers?" },
+{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Have temporary road signs been adequately sandbagged or fixed against wind loads?" },
+{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are pedestrian walkways physically segregated from plant haul routes using rigid barriers?" },
 { baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Is temporary access bridging over trenches robust, secured, and fitted with handrails?" },
-{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are all temporary ground protection mats (bog mats) linked and stable under traffic?" },
+{ baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are ground protection bog mats linked securely and stable under heavy vehicle traffic?" },
 { baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Are overhead GS6 goalposts correctly positioned, weighted, and indicating safe heights?" },
 { baseTopic: DEFAULT_TOPICS[7], type: "Field Verification", text: "Is reflective material on temporary barriers clean and visible for night works?" },
-{ baseTopic: DEFAULT_TOPICS[7], type: "Documentation", text: "Is a routine maintenance log kept for the repositioning of temporary traffic measures?" },
+{ baseTopic: DEFAULT_TOPICS[7], type: "Documentation", text: "Is a routine maintenance log kept for repositioning temporary traffic measures?" },
 // Topic 9
 { baseTopic: DEFAULT_TOPICS[8], type: "Documentation", text: "Has the crane base / grillage design been independently checked (Category 3 check if required)?" },
 { baseTopic: DEFAULT_TOPICS[8], type: "Documentation", text: "Are ground bearing pressure (CBR) test results documented before base installation?" },
-{ baseTopic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Are holding-down bolts visually intact and torqued as per manufacturer specifications?" },
-{ baseTopic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Is the crane grillage and surrounding concrete base free from severe cracking or settlement?" },
+{ baseTopic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Are crane holding-down bolts visually intact and torqued to manufacturer specifications?" },
+{ baseTopic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Is the crane foundation and surrounding concrete base free from severe cracking or settlement?" },
 { baseTopic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Is the temporary access scaffold attached to the crane mast compliant with the TW design?" },
 { baseTopic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Are crane mast tie-ins to the permanent structure secured and inspected?" },
 { baseTopic: DEFAULT_TOPICS[8], type: "Field Verification", text: "Are counterweights securely positioned and verified against the lifting plan?" },
@@ -266,11 +265,11 @@ const DEFAULT_QUESTIONS_TEMPLATE = [
 { baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Is a formal letter of appointment on file for the Temporary Works Coordinator (TWC)?" },
 { baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Is a formal letter of appointment on file for the Temporary Works Supervisor (TWS)?" },
 { baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are design briefs correctly completed and signed for all Category 1, 2, and 3 TW items?" },
-{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are the design checks (independent or otherwise) formally logged on the register?" },
-{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are all issued 'Permits to Load' and 'Permits to Dismantle' filed and accessible?" },
-{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Have specific TW Toolbox Talks been delivered to operatives constructing the temporary works?" },
-{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Do the sub-contractors' RAMS explicitly acknowledge the temporary works procedures?" },
-{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are any design modifications authorized and re-issued by the TWC before implementation?" },
+{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are design checks formally logged on the temporary works register?" },
+{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are all issued Permits to Load and Permits to Dismantle filed and accessible?" },
+{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Have specific TW Toolbox Talks been delivered to operatives constructing temporary works?" },
+{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Do sub-contractor RAMS explicitly acknowledge temporary works procedures?" },
+{ baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are design modifications authorized and re-issued by the TWC before implementation?" },
 { baseTopic: DEFAULT_TOPICS[9], type: "Documentation", text: "Are all TWS field inspection reports safely stored for audit compliance?" }
 ];
 
@@ -280,7 +279,7 @@ function initializeQuestions() {
     questionsList = DEFAULT_QUESTIONS_TEMPLATE.map((q, i) => ({
         id: 'q_' + i, 
         baseTopic: q.baseTopic, 
-        topic: q.baseTopic, // Initially, topic and baseTopic are the same
+        topic: q.baseTopic, 
         type: q.type, 
         text: q.text,
         answer: "", 
@@ -299,7 +298,7 @@ let auditorSignature = "";
 let repSignature = "";
 let sigMode = 'auditor';
 let sigDrawing = false;
-let maxUnlockedIndex = 0; // Enforces sequential unlocking
+let maxUnlockedIndex = 0; 
 
 window.onload = async function() {
     applyBranding();
@@ -326,7 +325,7 @@ async function fetchData() {
             if (sErr) throw sErr;
             if(s && s.length > 0) { sites = s; localStorage.setItem('tw_sites', JSON.stringify(sites)); }
         } catch(e) {
-            alert("Cloud Sync Alert: " + e.message + "\n\n(Make sure you have run the SQL setup script to create the tables in Supabase and disable RLS.)");
+            console.warn("Cloud Sync Notice: " + e.message);
         }
     }
 }
@@ -396,7 +395,6 @@ function renderQuestions() {
     const container = document.getElementById('topicsContainer');
     container.innerHTML = '';
     
-    // Get unique active topics (preserves duplicated item order)
     const activeTopics = [...new Set(questionsList.map(q => q.topic))];
 
     activeTopics.forEach((topicStr, tIdx) => {
@@ -435,7 +433,7 @@ function renderQuestions() {
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 pl-2 pt-2 border-t border-slate-100">
-                    <input type="text" id="comment_${idx}" value="${q.comment}" onchange="setComment(${idx}, this.value)" placeholder="Mandatory notes for Non-Conformance, or justification for N/A..." class="flex-grow w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-600 outline-none bg-slate-50" />
+                    <input type="text" id="comment_${idx}" value="${q.comment}" onchange="setComment(${idx}, this.value)" placeholder="Mandatory notes or location tag (e.g. Bay 18)..." class="flex-grow w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-600 outline-none bg-slate-50" />
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <label class="${isSkipped ? 'hidden' : 'flex'} cursor-pointer bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition items-center justify-center gap-1.5 shadow whitespace-nowrap w-full sm:w-auto">
                             <i data-lucide="camera" class="w-4 h-4"></i> Add Photo *
@@ -449,7 +447,6 @@ function renderQuestions() {
             </div>`;
         });
 
-        // Determine if this topic is N/A bypassed
         const isTopicSkipped = topicQs[0].photo === 'SKIP';
 
         container.innerHTML += `
@@ -476,7 +473,7 @@ function reindexQuestions() {
 
 function duplicateTopic(baseTopicStr, currentTopicStr, event) {
     event.stopPropagation(); event.preventDefault();
-    const ref = prompt("Inspect another item of this type? \n\nEnter a location/reference for this new item (e.g. 'Grid A1', 'Block B'):");
+    const ref = prompt("Inspect another item of this type? \n\nEnter location / bay reference (e.g. 'Bay 19', 'Gridline C'):");
     if (!ref) return;
 
     const templateQs = DEFAULT_QUESTIONS_TEMPLATE.filter(q => q.baseTopic === baseTopicStr);
@@ -495,7 +492,6 @@ function duplicateTopic(baseTopicStr, currentTopicStr, event) {
         idx: 0
     }));
 
-    // Find insertion index (insert immediately after the current topic group)
     let insertIndex = questionsList.length;
     for (let i = questionsList.length - 1; i >= 0; i--) {
         if (questionsList[i].topic === currentTopicStr) {
@@ -514,17 +510,16 @@ function duplicateTopic(baseTopicStr, currentTopicStr, event) {
 
 function markTopicNA(topicStr, event) {
     event.stopPropagation(); event.preventDefault();
-    if(!confirm(`Mark "${topicStr}" as Not Applicable?\n\nThis will instantly bypass the mandatory photo rules for these questions because the item is not present on site.`)) return;
+    if(!confirm(`Mark "${topicStr}" as Not Applicable?\n\nThis will bypass photo requirements for this category since the item is not present on site.`)) return;
 
     questionsList.forEach(q => {
         if (q.topic === topicStr) {
             q.answer = 'N/A';
-            q.photo = 'SKIP'; // special flag to bypass photo check
+            q.photo = 'SKIP'; 
             q.comment = 'Category marked N/A: Not present on site.';
         }
     });
     
-    // Auto collapse the details tag to improve UX
     const detailsElements = document.querySelectorAll('details');
     detailsElements.forEach(d => {
         if(d.innerHTML.includes(topicStr)) d.removeAttribute('open');
@@ -538,7 +533,6 @@ function markTopicNA(topicStr, event) {
 function updateSequentialLocks() {
     maxUnlockedIndex = 0;
     for (let i = 0; i < questionsList.length; i++) {
-        // Condition to unlock the NEXT question: Current question must have an answer, AND a photo (or be skipped via the category button)
         if (questionsList[i].answer && (questionsList[i].photo || questionsList[i].photo === 'SKIP')) {
             maxUnlockedIndex = i + 1;
         } else {
@@ -556,7 +550,6 @@ function updateSequentialLocks() {
         }
     }
 
-    // Auto-open next accordion if we crossed a topic boundary
     if (maxUnlockedIndex < questionsList.length && maxUnlockedIndex > 0) {
         const currentTopicStr = questionsList[maxUnlockedIndex].topic;
         const prevTopicStr = questionsList[maxUnlockedIndex - 1].topic;
@@ -572,14 +565,13 @@ function updateSequentialLocks() {
 }
 
 function attemptSetAnswer(idx, val) {
-    // 1. Mandatory Photo Rule Enforcement (Bypass if SKIP flag is set)
     if (!questionsList[idx].photo && questionsList[idx].photo !== 'SKIP') {
         alert("Rule Enforcement: A photo is mandatory for EVERY TW question before logging an answer. Please capture or upload a photo first.");
         return;
     }
 
     questionsList[idx].answer = val;
-    renderQuestions(); // Re-render to update button colors
+    renderQuestions(); 
     updateSequentialLocks();
     lucide.createIcons();
 }
