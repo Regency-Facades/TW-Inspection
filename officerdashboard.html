@@ -180,7 +180,7 @@ Review non-compliant items, attach remediation evidence regarding temporary work
 </div>
 </div>
 
-<!-- DB MODAL -->
+<!-- DB MODAL (WITH ERROR HANDLING) -->
 <div id="dbModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
 <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-3">
 <div class="flex items-center justify-between border-b pb-3">
@@ -234,7 +234,7 @@ let categoryChartInst = null;
 let typeChartInst = null;
 let activeInspectAuditId = null;
 
-// Temporary Works Focus Topics
+// Temporary Works Focus Topics (UPDATED TOPIC 7)
 const DEFAULT_TOPICS = [
 "1. Scaffolding & Edge Protection (TW Item)",
 "2. Falsework & Formwork (TW Item)",
@@ -242,7 +242,7 @@ const DEFAULT_TOPICS = [
 "4. Hoardings & Site Fencing (TW Item)",
 "5. Loading Bays & Working Platforms (TW Item)",
 "6. Site Welfare Facilities (TW Item)",
-"7. Structural Propping (TW Item)",
+"7. Structural Propping & Slab Support (TW Item)", // <--- RENAMED
 "8. Signage & Traffic Management (TW Item)",
 "9. Tower Cranes & Lifting Bases (TW Item)",
 "10. General TW Register & Procedure (Documentation)"
@@ -295,7 +295,10 @@ async function fetchData() {
 if (supabaseClient) {
 try {
 const { data: c, error: cErr } = await supabaseClient.from('clients').select('*'); 
-if(cErr) { console.error("RLS Error on clients", cErr); alert("Cloud Sync Blocked on Clients: Check RLS policies in Supabase."); }
+if(cErr) { 
+console.error("Supabase Error on clients", cErr); 
+alert("Cloud Sync Blocked: " + cErr.message + "\n\n(This usually means Row Level Security (RLS) is turned on or the tables haven't been created in your Supabase database yet.)"); 
+}
 else if(c) clients = c;
 
 const { data: s, error: sErr } = await supabaseClient.from('sites').select('*'); 
