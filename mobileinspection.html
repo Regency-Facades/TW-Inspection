@@ -27,7 +27,12 @@ body { background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
 <p id="appSubtitle" class="text-[10px] opacity-80 leading-none">BS 5975 & CDM 2015 System</p>
 </div>
 </div>
-<span class="text-[10px] bg-black/30 text-white px-2 py-1 rounded font-bold uppercase tracking-wider">TWS Portal</span>
+<div class="flex items-center gap-2">
+<span class="text-[10px] bg-black/30 text-white px-2 py-1 rounded font-bold uppercase tracking-wider hidden sm:inline-block">TWS Portal</span>
+<button type="button" onclick="openDbModal()" class="bg-black/20 hover:bg-black/40 p-1.5 rounded transition text-white" aria-label="Database Settings">
+<i data-lucide="settings" class="w-4 h-4"></i>
+</button>
+</div>
 </div>
 </header>
 
@@ -120,6 +125,22 @@ body { background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
 </div>
 </div>
 
+<!-- DB MODAL FOR MOBILE -->
+<div id="dbModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4 z-[110]">
+<div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+<div class="flex items-center justify-between border-b pb-3">
+<h3 class="font-bold text-slate-800 text-base flex items-center gap-2"><i data-lucide="database" class="w-5 h-5 text-amber-700"></i> Cloud Sync Settings</h3>
+<button type="button" onclick="closeDbModal()"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
+</div>
+<p class="text-xs text-slate-600">Enter your Supabase credentials here to sync Projects, Sites, and Audits with the Office Dashboard.</p>
+<form onsubmit="handleSaveDbKeys(event)" class="space-y-4 text-xs">
+<div><label class="block font-semibold mb-1">Supabase Project URL</label><input type="text" id="inputSupaUrl" class="w-full border border-slate-300 rounded p-2.5 font-mono bg-slate-50" /></div>
+<div><label class="block font-semibold mb-1">Supabase Anon Key</label><input type="text" id="inputSupaKey" class="w-full border border-slate-300 rounded p-2.5 font-mono bg-slate-50" /></div>
+<div class="flex justify-end gap-2 pt-2"><button type="submit" class="w-full py-3 bg-amber-700 hover:bg-amber-600 text-white rounded-lg font-bold shadow transition">Save Sync Keys & Reload</button></div>
+</form>
+</div>
+</div>
+
 <script>
 let SUPABASE_URL = localStorage.getItem('tw_supa_url') || "";
 let SUPABASE_ANON_KEY = localStorage.getItem('tw_supa_key') || "";
@@ -138,7 +159,6 @@ const DEFAULT_TOPICS = [
 "10. General TW Register & Procedure (Documentation)"
 ];
 
-// Generate exactly 100 questions (10 per topic) regarding Temporary Works.
 const DEFAULT_QUESTIONS = [
 // Topic 1: Scaffolding
 { topic: DEFAULT_TOPICS[0], type: "Documentation", text: "Has the scaffold design been formally approved by the TWC and is a copy available?" },
@@ -292,18 +312,21 @@ updateSequentialLocks();
 async function fetchData() {
 if (supabaseClient) {
 try {
-const { data: c } = await supabaseClient.from('clients').select('*'); 
+const { data: c, error: cErr } = await supabaseClient.from('clients').select('*'); 
+if (cErr) throw cErr;
 if(c && c.length > 0) {
 clients = c;
 localStorage.setItem('tw_clients', JSON.stringify(clients));
 }
-const { data: s } = await supabaseClient.from('sites').select('*'); 
+const { data: s, error: sErr } = await supabaseClient.from('sites').select('*'); 
+if (sErr) throw sErr;
 if(s && s.length > 0) {
 sites = s;
 localStorage.setItem('tw_sites', JSON.stringify(sites));
 }
 } catch(e) {
-console.error("Error fetching data:", e);
+console.error("Error fetching data from Supabase:", e);
+alert("Cloud Sync Blocked: " + e.message + "\n\n(This usually means Row Level Security (RLS) is turned on in your Supabase table settings, blocking the connection.)");
 }
 }
 }
@@ -509,6 +532,26 @@ reader.readAsDataURL(input.files[0]);
 
 function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightboxModal').classList.remove('hidden'); document.getElementById('lightboxModal').classList.add('flex'); }
 function closeLightbox() { document.getElementById('lightboxModal').classList.add('hidden'); document.getElementById('lightboxModal').classList.remove('flex'); }
+
+// DB MODAL FUNCTIONS FOR MOBILE
+function openDbModal() {
+document.getElementById('inputSupaUrl').value = SUPABASE_URL;
+document.getElementById('inputSupaKey').value = SUPABASE_ANON_KEY;
+document.getElementById('dbModal').classList.remove('hidden');
+document.getElementById('dbModal').classList.add('flex');
+lucide.createIcons();
+}
+function closeDbModal() {
+document.getElementById('dbModal').classList.add('hidden');
+document.getElementById('dbModal').classList.remove('flex');
+}
+function handleSaveDbKeys(e) {
+e.preventDefault();
+localStorage.setItem('tw_supa_url', document.getElementById('inputSupaUrl').value.trim());
+localStorage.setItem('tw_supa_key', document.getElementById('inputSupaKey').value.trim());
+closeDbModal();
+location.reload(); // Reload to trigger the async fetch with new keys
+}
 
 async function submitInspection() {
 const btn = document.getElementById('submitBtn');
