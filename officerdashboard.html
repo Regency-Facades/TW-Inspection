@@ -294,9 +294,17 @@ lucide.createIcons();
 async function fetchData() {
 if (supabaseClient) {
 try {
-const { data: c } = await supabaseClient.from('clients').select('*'); if(c) clients = c;
-const { data: s } = await supabaseClient.from('sites').select('*'); if(s) sites = s;
-const { data: a } = await supabaseClient.from('audits').select('*'); if(a) audits = a;
+const { data: c, error: cErr } = await supabaseClient.from('clients').select('*'); 
+if(cErr) { console.error("RLS Error on clients", cErr); alert("Cloud Sync Blocked on Clients: Check RLS policies in Supabase."); }
+else if(c) clients = c;
+
+const { data: s, error: sErr } = await supabaseClient.from('sites').select('*'); 
+if(sErr) console.error("RLS Error on sites", sErr);
+else if(s) sites = s;
+
+const { data: a, error: aErr } = await supabaseClient.from('audits').select('*'); 
+if(aErr) console.error("RLS Error on audits", aErr);
+else if(a) audits = a;
 } catch(e) {}
 }
 populateDropdowns();
@@ -807,17 +815,25 @@ branding.title = document.getElementById('inputBrandTitle').value; branding.subt
 localStorage.setItem('tw_branding', JSON.stringify(branding)); applyBranding(); closeBrandingModal();
 }
 
-function handleSaveClient(e) {
+async function handleSaveClient(e) {
 e.preventDefault();
 const newC = { id: 'c_' + Date.now(), name: document.getElementById('inputClientName').value.trim(), rep: document.getElementById('inputClientRep').value.trim(), email: document.getElementById('inputClientEmail').value.trim() };
-clients.push(newC); localStorage.setItem('tw_clients', JSON.stringify(clients)); if (supabaseClient) supabaseClient.from('clients').insert([newC]).then();
+clients.push(newC); localStorage.setItem('tw_clients', JSON.stringify(clients)); 
+if (supabaseClient) {
+const { error } = await supabaseClient.from('clients').insert([newC]);
+if (error) alert("Warning: Saved locally, but cloud sync failed! Supabase Error: " + error.message);
+}
 populateDropdowns(); renderDashboard(); closeClientModal();
 }
 
-function handleSaveSite(e) {
+async function handleSaveSite(e) {
 e.preventDefault();
 const newS = { id: 's_' + Date.now(), clientId: document.getElementById('selectSiteClient').value, name: document.getElementById('inputSiteName').value.trim() };
-sites.push(newS); localStorage.setItem('tw_sites', JSON.stringify(sites)); if (supabaseClient) supabaseClient.from('sites').insert([newS]).then();
+sites.push(newS); localStorage.setItem('tw_sites', JSON.stringify(sites)); 
+if (supabaseClient) {
+const { error } = await supabaseClient.from('sites').insert([newS]);
+if (error) alert("Warning: Saved locally, but cloud sync failed! Supabase Error: " + error.message);
+}
 populateDropdowns(); renderDashboard(); closeSiteModal();
 }
 
