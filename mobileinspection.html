@@ -146,6 +146,7 @@ let SUPABASE_URL = localStorage.getItem('tw_supa_url') || "";
 let SUPABASE_ANON_KEY = localStorage.getItem('tw_supa_key') || "";
 let supabaseClient = null;
 
+// UPDATED TOPIC 7
 const DEFAULT_TOPICS = [
 "1. Scaffolding & Edge Protection (TW Item)",
 "2. Falsework & Formwork (TW Item)",
@@ -153,7 +154,7 @@ const DEFAULT_TOPICS = [
 "4. Hoardings & Site Fencing (TW Item)",
 "5. Loading Bays & Working Platforms (TW Item)",
 "6. Site Welfare Facilities (TW Item)",
-"7. Structural Propping (TW Item)",
+"7. Structural Propping & Slab Support (TW Item)", // <--- RENAMED
 "8. Signage & Traffic Management (TW Item)",
 "9. Tower Cranes & Lifting Bases (TW Item)",
 "10. General TW Register & Procedure (Documentation)"
@@ -232,17 +233,17 @@ const DEFAULT_QUESTIONS = [
 { topic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are lifting eyes on the cabins visually inspected and free from structural rust/damage?" },
 { topic: DEFAULT_TOPICS[5], type: "Documentation", text: "Has the temporary electrical supply to the welfare block been certified and signed off?" },
 
-// Topic 7: Structural Propping
-{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Is a structural engineer / TWC approved design drawing available for all propping?" },
-{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are structural steel needles fully supported and secured against lateral movement?" },
+// Topic 7: Structural Propping & Slab Support (UPDATED QUESTIONS TO MATCH PHOTO)
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Is a structural engineer / TWC approved design drawing available for all slab support/propping?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are structural steel or timber needles fully supported against lateral movement (e.g., under slabs)?" }, // <--- TWEAKED
 { topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are all Acrow props installed plumb (vertically straight) without deviation?" },
 { topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are prop head plates and base plates in full, flush contact with the load bearing surfaces?" },
-{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are timber wedges/packers structurally sound (not split) and nailed into position?" },
-{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Is timber lacing and bracing installed across props to prevent buckling?" },
-{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has the floor slab load-bearing capacity been verified before props were tensioned?" },
-{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has a 'Permit to Load' been issued by the TWC before dismantling the existing masonry?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are timber wedges/packers structurally sound (not split) and nailed into position if used?" },
+{ topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Is scaffolding tube or timber lacing and bracing installed across props to prevent buckling?" }, // <--- TWEAKED
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has the concrete floor slab load-bearing capacity been verified before props were tensioned?" },
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Has a 'Permit to Load' been issued by the TWC before applying load to the temporary structure?" },
 { topic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are the threads and pins on all props in good condition (not bent or stripped)?" },
-{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Are daily checks conducted to ensure props haven't loosened due to vibration?" },
+{ topic: DEFAULT_TOPICS[6], type: "Documentation", text: "Are daily checks conducted to ensure props haven't loosened due to vibration (e.g., from car park traffic)?" }, // <--- TWEAKED
 
 // Topic 8: Signage & Traffic Management
 { topic: DEFAULT_TOPICS[7], type: "Documentation", text: "Are temporary concrete barriers (e.g. TVCBs) installed as per the traffic management design?" },
@@ -326,7 +327,7 @@ localStorage.setItem('tw_sites', JSON.stringify(sites));
 }
 } catch(e) {
 console.error("Error fetching data from Supabase:", e);
-alert("Cloud Sync Blocked: " + e.message + "\n\n(This usually means Row Level Security (RLS) is turned on in your Supabase table settings, blocking the connection.)");
+alert("Cloud Sync Blocked: " + e.message + "\n\n(This usually means Row Level Security (RLS) is turned on or the tables haven't been created in your Supabase database yet.)");
 }
 }
 }
