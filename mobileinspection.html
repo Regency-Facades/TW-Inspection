@@ -7,6 +7,8 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
 body { background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
 .custom-header { background-color: #78350f; color: #ffffff; } 
@@ -97,7 +99,7 @@ details > summary::-webkit-details-marker { display: none; }
 </div>
 
 <button id="submitBtn" type="button" onclick="submitInspection()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
-<i data-lucide="check-square" class="w-5 h-5"></i> Submit Formal TW Report
+<i data-lucide="check-square" class="w-5 h-5"></i> Submit Formal TW Report & Upload PDF
 </button>
 
 </main>
@@ -128,16 +130,19 @@ details > summary::-webkit-details-marker { display: none; }
 
 <!-- DB MODAL FOR MOBILE -->
 <div id="dbModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4 z-[110]">
-<div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+<div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between border-b pb-3">
 <h3 class="font-bold text-slate-800 text-base flex items-center gap-2"><i data-lucide="database" class="w-5 h-5 text-amber-700"></i> Cloud Sync Settings</h3>
 <button type="button" onclick="closeDbModal()"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
 </div>
-<p class="text-xs text-slate-600">Enter your Supabase credentials here to sync Projects, Sites, and Audits with the Office Dashboard.</p>
+<p class="text-xs text-slate-600">Enter your Supabase credentials here to sync Projects, Sites, Audits, and PDF files with the Office Dashboard.</p>
 <form onsubmit="handleSaveDbKeys(event)" class="space-y-4 text-xs">
 <div><label class="block font-semibold mb-1">Supabase Project URL</label><input type="text" id="inputSupaUrl" class="w-full border border-slate-300 rounded p-2.5 font-mono bg-slate-50" /></div>
 <div><label class="block font-semibold mb-1">Supabase Anon Key</label><input type="text" id="inputSupaKey" class="w-full border border-slate-300 rounded p-2.5 font-mono bg-slate-50" /></div>
-<div class="flex justify-end gap-2 pt-2"><button type="submit" class="w-full py-3 bg-amber-700 hover:bg-amber-600 text-white rounded-lg font-bold shadow transition">Save Sync Keys & Reload</button></div>
+<div class="pt-2 flex flex-col gap-2">
+<button type="submit" class="w-full py-3 bg-amber-700 hover:bg-amber-600 text-white rounded-lg font-bold shadow transition">Save Sync Keys & Connect</button>
+<button type="button" onclick="clearLocalCacheAndReload()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold border transition">Clear Local Cache & Fetch Fresh</button>
+</div>
 </form>
 </div>
 </div>
@@ -227,7 +232,7 @@ const DEFAULT_QUESTIONS_TEMPLATE = [
 { baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Is there any evidence of ground settlement or cracking around cabin support pads?" },
 { baseTopic: DEFAULT_TOPICS[5], type: "Field Verification", text: "Are cabin lifting points visually inspected and free from structural rust or damage?" },
 { baseTopic: DEFAULT_TOPICS[5], type: "Documentation", text: "Has the temporary electrical supply to the welfare block been certified and signed off?" },
-// Topic 7 - STRUCTURAL PROPPING & SLAB SUPPORT (Updated with practical UK site language)
+// Topic 7
 { baseTopic: DEFAULT_TOPICS[6], type: "Documentation", text: "Is a structural engineer / TWC approved design drawing available on site for this propping layout?" },
 { baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are timber headbeams (runners) sitting flat and fully supported against the concrete ceiling without slipping?" }, 
 { baseTopic: DEFAULT_TOPICS[6], type: "Field Verification", text: "Are all Acrow props installed plumb (vertically straight) without bending or tilting?" },
@@ -318,12 +323,16 @@ async function fetchData() {
     if (supabaseClient) {
         try {
             const { data: c, error: cErr } = await supabaseClient.from('clients').select('*'); 
-            if (cErr) throw cErr;
-            if(c && c.length > 0) { clients = c; localStorage.setItem('tw_clients', JSON.stringify(clients)); }
+            if (!cErr && c !== null) { 
+                clients = c; 
+                localStorage.setItem('tw_clients', JSON.stringify(clients)); 
+            }
             
             const { data: s, error: sErr } = await supabaseClient.from('sites').select('*'); 
-            if (sErr) throw sErr;
-            if(s && s.length > 0) { sites = s; localStorage.setItem('tw_sites', JSON.stringify(sites)); }
+            if (!sErr && s !== null) { 
+                sites = s; 
+                localStorage.setItem('tw_sites', JSON.stringify(sites)); 
+            }
         } catch(e) {
             console.warn("Cloud Sync Notice: " + e.message);
         }
@@ -626,10 +635,162 @@ function handleSaveDbKeys(e) {
     location.reload(); 
 }
 
+function clearLocalCacheAndReload() {
+    if (confirm("Clear local cache? This will flush local projects/sites and fetch fresh data from your connected Supabase project.")) {
+        localStorage.removeItem('tw_clients');
+        localStorage.removeItem('tw_sites');
+        localStorage.removeItem('tw_audits');
+        location.reload();
+    }
+}
+
+function addImageToPdf(doc, imageStr, x, y, width, height) {
+    if (!imageStr || typeof imageStr !== 'string' || imageStr.indexOf('data:image') !== 0) return false;
+    if (imageStr === 'SKIP') return false;
+    try {
+        let fmt = 'JPEG';
+        if (imageStr.indexOf('image/png') !== -1) fmt = 'PNG';
+        else if (imageStr.indexOf('image/webp') !== -1) fmt = 'WEBP';
+        doc.addImage(imageStr, fmt, x, y, width, height);
+        return true;
+    } catch (err) { return false; }
+}
+
+function generatePdfBlob(audit, c, s) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const themeColor = branding.color || '#78350f';
+
+    doc.setFillColor(themeColor);
+    doc.rect(0, 0, 210, 30, 'F');
+    let textStartX = 14;
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(15);
+    doc.setFont("helvetica", "bold");
+    doc.text(branding.title || 'Temporary Works Inspection UK', textStartX, 16);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text('Official Inspection Certificate | Status: ' + (audit.status === 'Closed' ? 'CLOSED' : 'OPEN'), textStartX, 23);
+
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("Project & Site Details:", 14, 40);
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.text('Project/Client: ' + (c.name || 'N/A'), 14, 46);
+    doc.text('Site Location: ' + (s.name || 'N/A'), 14, 51);
+    doc.text('Inspector / TWS: ' + (audit.inspectorName || 'N/A') + ' (' + (audit.inspectorQuals || 'N/A') + ')', 14, 56);
+    doc.text('Inspection Date: ' + (audit.date || 'N/A'), 125, 46);
+    doc.text('Overall Score: ' + audit.score + '%', 125, 51);
+    doc.text('Report Ref: TWR-' + String(audit.id || '').substring(2, 10), 125, 56);
+
+    const tableRows = [];
+    (audit.questions || []).forEach(q => {
+        if (q.photo === 'SKIP') return;
+        let result = q.answer === 'Yes' ? 'Compliant' : (q.answer === 'No' ? 'Defect' : 'N/A');
+        let urgency = q.answer === 'No' ? (q.severity === 'Red' ? 'PROHIBITION' : 'MINOR') : '-';
+        let findings = q.comment || '-';
+        if (q.photo && q.photo !== 'SKIP') findings += ' [Photo Attached]';
+        tableRows.push([q.topic.replace(' (TW Item)', ''), q.type, q.text, result, urgency, findings]);
+    });
+
+    doc.autoTable({
+        startY: 62,
+        head: [['Temporary Works Item', 'Verification', 'Criteria Checked', 'Result', 'Urgency', 'TWS Observations']],
+        body: tableRows,
+        headStyles: { fillColor: themeColor, fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' },
+        columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 26 }, 2: { cellWidth: 62 }, 3: { cellWidth: 20 }, 4: { cellWidth: 18 }, 5: { cellWidth: 24 } }
+    });
+
+    // APPENDIX A
+    doc.addPage();
+    doc.setFillColor(themeColor);
+    doc.rect(0, 0, 210, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Appendix A: Field Photographic Evidence & Defect Logs", 14, 13);
+    let yPos = 28;
+
+    const photoItems = (audit.questions || []).filter(q => (q.photo && q.photo !== 'SKIP'));
+    if (photoItems.length === 0) {
+        doc.setTextColor(100, 100, 100); doc.setFontSize(9);
+        doc.text("No photographic evidence recorded in this inspection.", 14, 38);
+    } else {
+        doc.setTextColor(40, 40, 40);
+        photoItems.forEach((q, idx) => {
+            if (yPos > 185) { doc.addPage(); yPos = 25; }
+            doc.setFontSize(9); doc.setFont("helvetica", "bold");
+            const splitTitle = doc.splitTextToSize((idx + 1) + '. [' + q.topic + '] - ' + q.text, 180);
+            doc.text(splitTitle, 14, yPos);
+            yPos += (splitTitle.length * 4.5) + 2;
+
+            doc.setFontSize(8); doc.setFont("helvetica", "normal");
+            doc.text('TWS Finding: ' + (q.comment || 'No comment provided.'), 14, yPos);
+            yPos += 5;
+
+            if (q.photo && q.photo !== 'SKIP') {
+                if(addImageToPdf(doc, q.photo, 14, yPos, 50, 38)) yPos += 42;
+            }
+            doc.setDrawColor(220, 220, 220);
+            doc.line(14, yPos, 196, yPos);
+            yPos += 6;
+        });
+    }
+
+    // APPENDIX B
+    doc.addPage();
+    doc.setFillColor(themeColor);
+    doc.rect(0, 0, 210, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13); doc.setFont("helvetica", "bold");
+    doc.text("Appendix B: Supervisor Summary & Final Declarations", 14, 13);
+    doc.setTextColor(40, 40, 40); doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("TWS Summary Remarks:", 14, 32);
+    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+    const notesSplit = doc.splitTextToSize((audit.inspectorNotes || "No summary provided."), 180);
+    doc.text(notesSplit, 14, 40);
+
+    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+    doc.text("TWS Sign-Off (Field):", 14, 80);
+    if (audit.auditorSignature) addImageToPdf(doc, audit.auditorSignature, 14, 85, 60, 25);
+    doc.setDrawColor(60, 60, 60); doc.line(14, 115, 78, 115);
+    doc.setFontSize(8.5); doc.setFont("helvetica", "normal");
+    doc.text('Name: ' + (audit.inspectorName || 'N/A') + ' (' + (audit.inspectorQuals || 'N/A') + ')', 14, 120);
+
+    return doc.output('blob');
+}
+
+async function uploadPdfToSupabase(audit, pdfBlob) {
+    if (!supabaseClient) return null;
+    try {
+        const fileName = `TW_Report_${audit.id}_${audit.date}.pdf`;
+        const filePath = `reports/${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
+            .from('tw_reports')
+            .upload(filePath, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+        if (uploadError) {
+            console.warn("PDF Storage Notice: Storage bucket 'tw_reports' missing or restricted. " + uploadError.message);
+            return null;
+        }
+
+        const { data: urlData } = supabaseClient.storage.from('tw_reports').getPublicUrl(filePath);
+        return urlData ? urlData.publicUrl : null;
+    } catch(err) {
+        console.warn("Storage Upload Error:", err);
+        return null;
+    }
+}
+
 async function submitInspection() {
     const btn = document.getElementById('submitBtn');
     const originalText = btn.innerHTML;
-    btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Saving TW Report...`;
+    btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Generating PDF & Saving Report...`;
     btn.disabled = true;
     await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -666,6 +827,9 @@ async function submitInspection() {
         let score = totalValid > 0 ? Math.round((yesCount / totalValid) * 100) : 0;
         let finalStatus = (score === 100 && !hasCritical) ? "Closed" : "Open";
 
+        const clientObj = clients.find(c => c.id === clientId) || { name: 'Project' };
+        const siteObj = sites.find(s => s.id === siteId) || { name: 'Site' };
+
         const newAudit = {
             id: 'a_' + Date.now(),
             clientId,
@@ -679,22 +843,35 @@ async function submitInspection() {
             siteRepSignature: repSignature,
             score,
             status: finalStatus,
-            questions: questionsList
+            questions: questionsList,
+            pdfUrl: ""
         };
+
+        // Generate PDF
+        const pdfBlob = generatePdfBlob(newAudit, clientObj, siteObj);
+
+        // Upload PDF to Supabase Storage if configured
+        if (supabaseClient) {
+            const pdfUrl = await uploadPdfToSupabase(newAudit, pdfBlob);
+            if (pdfUrl) newAudit.pdfUrl = pdfUrl;
+        }
 
         let existing = JSON.parse(localStorage.getItem('tw_audits')) || [];
         existing.push(newAudit);
         try {
             localStorage.setItem('tw_audits', JSON.stringify(existing));
-        } catch(e) { throw new Error("Device Memory Full! Please clear old audits from the dashboard."); }
+        } catch(e) { console.warn("Local storage full, saving to cloud primary."); }
 
         if (supabaseClient) {
             try {
-                const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
+                const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000));
                 await Promise.race([ supabaseClient.from('audits').insert([newAudit]), timeout ]);
-            } catch(e) {}
+            } catch(e) {
+                console.warn("Supabase insert warning:", e.message);
+            }
         }
-        alert(`✅ Formal TW Report Submitted!\nCompliance Score: ${score}%`);
+
+        alert(`✅ Formal TW Report Submitted!\nCompliance Score: ${score}%\n${newAudit.pdfUrl ? 'PDF uploaded to Supabase cloud.' : ''}`);
         window.location.href = 'officerdashboard.html';
 
     } catch (err) {
