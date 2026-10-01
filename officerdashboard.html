@@ -32,7 +32,7 @@ body { background-color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-se
 <button type="button" onclick="openDbModal()" class="bg-black/20 hover:bg-black/30 border border-white/20 px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5"><i data-lucide="database" class="w-4 h-4"></i> <span id="dbStatusLabel">Database Sync</span></button>
 <button type="button" onclick="openClientModal()" class="bg-amber-700 hover:bg-amber-600 border border-amber-500/50 text-white px-3 py-2 rounded-lg text-sm font-medium transition">+ Register Project</button>
 <button type="button" onclick="openSiteModal()" class="bg-amber-700 hover:bg-amber-600 border border-amber-500/50 text-white px-3 py-2 rounded-lg text-sm font-medium transition">+ Register Site</button>
-<button type="button" onclick="openManageModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5"><i data-lucide="folder-cog" class="w-4 h-4"></i> Manage Projects</button>
+<button type="button" onclick="openManageModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5"><i data-lucide="folder-cog" class="w-4 h-4"></i> Manage Projects & Sites</button>
 </div>
 </div>
 </header>
@@ -117,14 +117,53 @@ body { background-color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-se
 <div id="manageModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
 <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between border-b pb-3">
-<h3 class="font-bold text-slate-800 text-lg flex items-center gap-2"><i data-lucide="folder-cog" class="w-5 h-5 text-amber-700"></i> Manage Projects & Sites</h3>
+<h3 class="font-bold text-slate-800 text-lg flex items-center gap-2"><i data-lucide="folder-cog" class="w-5 h-5 text-amber-700"></i> Manage Projects & Site Locations</h3>
 <button type="button" onclick="closeManageModal()"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
 </div>
-<p class="text-xs text-slate-500">Edit, duplicate or remove projects and their sites. When deleting a project, you can choose whether to also purge linked inspection reports.</p>
+<p class="text-xs text-slate-500">Full CRUD control: edit project details, edit site locations, or delete them. All updates sync directly with Supabase.</p>
 <div id="manageClientsList" class="space-y-4 pt-2"></div>
 <div class="flex justify-end pt-3 border-t">
-<button type="button" onclick="closeManageModal()" class="px-4 py-2 bg-amber-800 hover:bg-amber-700 text-white font-bold rounded-lg text-xs">Done</button>
+<button type="button" onclick="closeManageModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs">Done</button>
 </div>
+</div>
+</div>
+
+<!-- EDIT PROJECT MODAL -->
+<div id="editClientModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[60]">
+<div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-3">
+<div class="flex items-center justify-between border-b pb-3">
+<h3 class="font-bold text-slate-800 text-base flex items-center gap-2"><i data-lucide="edit-3" class="w-5 h-5 text-amber-700"></i> Edit Project Details</h3>
+<button type="button" onclick="closeEditClientModal()"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
+</div>
+<form onsubmit="handleSaveEditClient(event)" class="space-y-3 text-xs">
+<input type="hidden" id="editClientId" />
+<div><label class="block font-semibold mb-1">Project Name / Client *</label><input type="text" id="editClientName" required class="w-full border rounded p-2" /></div>
+<div><label class="block font-semibold mb-1">Principal Contractor Rep</label><input type="text" id="editClientRep" class="w-full border rounded p-2" /></div>
+<div><label class="block font-semibold mb-1">Contact Email</label><input type="email" id="editClientEmail" class="w-full border rounded p-2" /></div>
+<div class="flex justify-end gap-2 pt-2">
+<button type="button" onclick="closeEditClientModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded">Cancel</button>
+<button type="submit" class="px-4 py-2 bg-amber-800 hover:bg-amber-700 text-white rounded font-bold shadow">Save Changes</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- EDIT SITE MODAL -->
+<div id="editSiteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-[60]">
+<div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-3">
+<div class="flex items-center justify-between border-b pb-3">
+<h3 class="font-bold text-slate-800 text-base flex items-center gap-2"><i data-lucide="edit-3" class="w-5 h-5 text-amber-700"></i> Edit Site Location</h3>
+<button type="button" onclick="closeEditSiteModal()"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
+</div>
+<form onsubmit="handleSaveEditSite(event)" class="space-y-3 text-xs">
+<input type="hidden" id="editSiteId" />
+<div><label class="block font-semibold mb-1">Assigned Project *</label><select id="editSiteClientId" required class="w-full border rounded p-2"></select></div>
+<div><label class="block font-semibold mb-1">Site Location Name *</label><input type="text" id="editSiteName" required class="w-full border rounded p-2" /></div>
+<div class="flex justify-end gap-2 pt-2">
+<button type="button" onclick="closeEditSiteModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded">Cancel</button>
+<button type="submit" class="px-4 py-2 bg-amber-800 hover:bg-amber-700 text-white rounded font-bold shadow">Save Changes</button>
+</div>
+</form>
 </div>
 </div>
 
@@ -145,7 +184,7 @@ Review non-compliant items, attach remediation evidence regarding temporary work
 </div>
 <div class="flex justify-end gap-2 border-t pt-4">
 <button type="button" onclick="closeInspectModal()" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg border">Cancel</button>
-<button type="button" onclick="saveAndCloseReport(this)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow transition">Sign-Off & Close Formal Report</button>
+<button type="button" onclick="saveAndCloseReport(this)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow transition">Sign-Off, Generate PDF & Close Report</button>
 </div>
 </div>
 </div>
@@ -182,16 +221,33 @@ Review non-compliant items, attach remediation evidence regarding temporary work
 
 <!-- DB MODAL -->
 <div id="dbModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-<div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-3">
+<div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-3 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between border-b pb-3">
 <h3 class="font-bold text-slate-800 text-base">Supabase Cloud Sync</h3>
 <button type="button" onclick="closeDbModal()"><i data-lucide="x" class="w-5 h-5 text-slate-400 hover:text-slate-600"></i></button>
 </div>
 <form onsubmit="handleSaveDbKeys(event)" class="space-y-3 text-xs">
-<div><label class="block font-semibold mb-1">Supabase Project URL</label><input type="text" id="inputSupaUrl" class="w-full border rounded p-2 font-mono" /></div>
-<div><label class="block font-semibold mb-1">Supabase Anon Key</label><input type="text" id="inputSupaKey" class="w-full border rounded p-2 font-mono" /></div>
-<div class="flex justify-end gap-2 pt-2"><button type="submit" class="px-4 py-2 bg-amber-800 hover:bg-amber-700 text-white rounded font-bold shadow">Save Sync Keys</button></div>
+<div><label class="block font-semibold mb-1">Supabase Project URL</label><input type="text" id="inputSupaUrl" class="w-full border rounded p-2 font-mono" placeholder="https://xyz.supabase.co" /></div>
+<div><label class="block font-semibold mb-1">Supabase Anon Key</label><input type="text" id="inputSupaKey" class="w-full border rounded p-2 font-mono" placeholder="ey..." /></div>
+<div class="flex flex-col gap-2 pt-2">
+<button type="submit" class="w-full py-2.5 bg-amber-800 hover:bg-amber-700 text-white rounded font-bold shadow">Save Sync Keys & Connect</button>
+<button type="button" onclick="clearLocalCacheAndReload()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold border">Clear Local Cache & Fetch Fresh</button>
+</div>
 </form>
+<details class="text-[11px] bg-slate-50 p-3 rounded border border-slate-200">
+<summary class="font-bold text-amber-900 cursor-pointer">🛠️ View Required Supabase SQL & Storage Setup</summary>
+<p class="mt-2 text-slate-600">Run this script in your Supabase SQL Editor to create tables and PDF storage bucket:</p>
+<textarea readonly class="w-full h-36 font-mono text-[10px] p-2 bg-slate-900 text-slate-100 rounded mt-2">
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, rep TEXT, email TEXT);
+CREATE TABLE IF NOT EXISTS sites (id TEXT PRIMARY KEY, clientId TEXT, name TEXT);
+CREATE TABLE IF NOT EXISTS audits (id TEXT PRIMARY KEY, clientId TEXT, siteId TEXT, date TEXT, inspectorName TEXT, inspectorQuals TEXT, inspectorNotes TEXT, auditorSignature TEXT, siteRepName TEXT, siteRepSignature TEXT, score NUMERIC, status TEXT, questions JSONB, closedBy TEXT, closedDate TEXT, pdfUrl TEXT);
+
+-- Storage bucket for PDFs
+INSERT INTO storage.buckets (id, name, public) VALUES ('tw_reports', 'tw_reports', true) ON CONFLICT DO NOTHING;
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'tw_reports');
+CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'tw_reports');
+</textarea>
+</details>
 </div>
 </div>
 
@@ -272,20 +328,30 @@ async function fetchData() {
 if (supabaseClient) {
 try {
 const { data: c, error: cErr } = await supabaseClient.from('clients').select('*'); 
-if(cErr) console.error("Supabase Error on clients", cErr);
-else if(c) clients = c;
+if(!cErr && c !== null) { clients = c; localStorage.setItem('tw_clients', JSON.stringify(clients)); }
 
 const { data: s, error: sErr } = await supabaseClient.from('sites').select('*'); 
-if(sErr) console.error("RLS Error on sites", sErr);
-else if(s) sites = s;
+if(!sErr && s !== null) { sites = s; localStorage.setItem('tw_sites', JSON.stringify(sites)); }
 
 const { data: a, error: aErr } = await supabaseClient.from('audits').select('*'); 
-if(aErr) console.error("RLS Error on audits", aErr);
-else if(a) audits = a;
-} catch(e) {}
+if(!aErr && a !== null) { audits = a; localStorage.setItem('tw_audits', JSON.stringify(audits)); }
+
+document.getElementById('dbStatusLabel').innerText = "Database Connected";
+} catch(e) {
+document.getElementById('dbStatusLabel').innerText = "Sync Warning";
+}
 }
 populateDropdowns();
 renderDashboard();
+}
+
+function clearLocalCacheAndReload() {
+if (confirm("Clear local cache? This will flush local projects/sites and fetch fresh data from your connected Supabase project.")) {
+localStorage.removeItem('tw_clients');
+localStorage.removeItem('tw_sites');
+localStorage.removeItem('tw_audits');
+location.reload();
+}
 }
 
 function switchTab(tab) {
@@ -425,6 +491,7 @@ tbody.innerHTML += '<tr class="hover:bg-slate-50 border-b border-slate-100">' +
 '<td class="p-3"><span class="font-bold text-sm ' + (a.score >= 80 ? 'text-emerald-700' : 'text-amber-700') + '">' + a.score + '%</span></td>' +
 '<td class="p-3"><span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ' + (isClosed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200') + '">' + (isClosed ? 'Closed' : 'Open') + '</span></td>' +
 '<td class="p-3 text-right whitespace-nowrap">' +
+(a.pdfUrl ? '<a href="' + a.pdfUrl + '" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-lg font-bold text-xs shadow-sm transition mr-1 inline-flex items-center gap-1">Cloud PDF</a>' : '') +
 '<button onclick="openInspectModal(\'' + a.id + '\')" class="bg-slate-800 hover:bg-slate-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-xs shadow-sm transition mr-1">Review & Close</button>' +
 '<button onclick="emailAuditReport(\'' + a.id + '\')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1.5 rounded-lg font-bold text-xs shadow-sm transition mr-1">Email</button>' +
 '<button onclick="downloadPDF(\'' + a.id + '\')" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 rounded-lg font-bold text-xs shadow-sm transition mr-1">PDF</button>' +
@@ -496,16 +563,10 @@ head: [['Temporary Works Item', 'Verification', 'Criteria Checked', 'Result', 'U
 body: tableRows,
 headStyles: { fillColor: themeColor, fontSize: 8, fontStyle: 'bold' },
 styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' },
-columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 26 }, 2: { cellWidth: 62 }, 3: { cellWidth: 20 }, 4: { cellWidth: 18 }, 5: { cellWidth: 24 } },
-didParseCell: function(data) {
-if (data.section === 'body' && data.column.index === 3) {
-if (data.cell.raw === 'Defect') { data.cell.styles.textColor = [220, 38, 38]; data.cell.styles.fontStyle = 'bold'; }
-if (data.cell.raw === 'Compliant') { data.cell.styles.textColor = [16, 185, 129]; }
-}
-}
+columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 26 }, 2: { cellWidth: 62 }, 3: { cellWidth: 20 }, 4: { cellWidth: 18 }, 5: { cellWidth: 24 } }
 });
 
-// APPENDIX A: Photographic Evidence Log (Includes both compliant photos and defects)
+// APPENDIX A
 doc.addPage();
 doc.setFillColor(themeColor);
 doc.rect(0, 0, 210, 20, 'F');
@@ -575,8 +636,7 @@ doc.setFont("helvetica", "normal");
 const notesSplit = doc.splitTextToSize((audit.inspectorNotes || "No summary provided."), 180);
 doc.text(notesSplit, 14, 40);
 
-doc.setFontSize(10);
-doc.setFont("helvetica", "bold");
+doc.setFontSize(10); doc.setFont("helvetica", "bold");
 doc.text("TWS Sign-Off (Field):", 14, 80);
 if (audit.auditorSignature) addImageToPdf(doc, audit.auditorSignature, 14, 85, 60, 25);
 doc.setDrawColor(60, 60, 60); doc.line(14, 115, 78, 115);
@@ -604,6 +664,29 @@ doc.text(branding.footerText || "Official Temporary Works Inspection Certificate
 doc.text('Page ' + i + ' of ' + pageCount, 185, 288);
 }
 return doc;
+}
+
+async function uploadPdfToSupabase(audit, pdfBlob) {
+if (!supabaseClient) return null;
+try {
+const fileName = `TW_Report_${audit.id}_${audit.date}.pdf`;
+const filePath = `reports/${fileName}`;
+
+const { data: uploadData, error: uploadError } = await supabaseClient.storage
+.from('tw_reports')
+.upload(filePath, pdfBlob, { contentType: 'application/pdf', upsert: true });
+
+if (uploadError) {
+console.warn("PDF Storage upload warning:", uploadError.message);
+return null;
+}
+
+const { data: urlData } = supabaseClient.storage.from('tw_reports').getPublicUrl(filePath);
+return urlData ? urlData.publicUrl : null;
+} catch(err) {
+console.warn("Storage Error:", err);
+return null;
+}
 }
 
 async function emailAuditReport(auditId) {
@@ -727,7 +810,7 @@ reader.readAsDataURL(input.files[0]);
 
 async function saveAndCloseReport(btn) {
 const originalText = btn.innerText;
-btn.innerText = "Processing..."; btn.disabled = true;
+btn.innerText = "Processing & Uploading PDF..."; btn.disabled = true;
 try {
 const audit = audits.find(a => a.id === activeInspectAuditId);
 if (audit) {
@@ -735,10 +818,25 @@ const closedBy = document.getElementById('inputClosedBy').value.trim();
 if (!closedBy) { alert("Enter TWC name to close report."); btn.innerText = originalText; btn.disabled = false; return; }
 audit.status = 'Closed'; audit.closedBy = closedBy; audit.closedDate = document.getElementById('inputClosedDate').value || new Date().toISOString().split('T')[0];
 audit.questions.forEach(q => { if (q.answer === 'No') { q.status = 'Closed'; const noteEl = document.getElementById('closure_note_' + q.id); if (noteEl) q.closureNote = noteEl.value; } });
+
+const c = clients.find(x => x.id === audit.clientId) || { name: 'Project' };
+const s = sites.find(x => x.id === audit.siteId) || { name: 'Site' };
+
+// Re-generate and upload final PDF
+const doc = buildCompletePdfDocument(audit, c, s);
+const pdfBlob = doc.output('blob');
+
+if (supabaseClient) {
+const pdfUrl = await uploadPdfToSupabase(audit, pdfBlob);
+if (pdfUrl) audit.pdfUrl = pdfUrl;
+}
+
 localStorage.setItem('tw_audits', JSON.stringify(audits));
-if (supabaseClient) { try { await supabaseClient.from('audits').update({ status: 'Closed', questions: audit.questions }).eq('id', audit.id); } catch(e){} }
+if (supabaseClient) {
+try { await supabaseClient.from('audits').update({ status: 'Closed', questions: audit.questions, closedBy: audit.closedBy, closedDate: audit.closedDate, pdfUrl: audit.pdfUrl }).eq('id', audit.id); } catch(e){}
+}
 renderDashboard(); closeInspectModal();
-alert("TW Report verified and marked CLOSED.");
+alert("TW Report verified, PDF certificate stored, and marked CLOSED.");
 }
 } catch (err) { alert(err.message); } finally { btn.innerText = originalText; btn.disabled = false; }
 }
@@ -751,24 +849,95 @@ const container = document.getElementById('manageClientsList');
 if (clients.length === 0) { container.innerHTML = '<p class="text-xs text-slate-400">No projects registered.</p>'; return; }
 container.innerHTML = clients.map(c => {
 const clientSites = sites.filter(s => s.clientId === c.id);
-let sitesHtml = clientSites.length === 0 ? '<p class="text-slate-400 italic">No sites.</p>' : clientSites.map(s => `<div class="flex justify-between items-center py-1"><span>• ${s.name}</span><button onclick="deleteSiteLocation('${s.id}')" class="text-red-500 hover:text-red-700 font-bold text-[11px]">Remove Site</button></div>`).join('');
+let sitesHtml = clientSites.length === 0 ? '<p class="text-slate-400 italic text-[11px]">No sites registered under this project.</p>' : clientSites.map(s => `
+<div class="flex justify-between items-center py-1.5 px-2 bg-white rounded border border-slate-200">
+<span class="font-medium text-slate-700">• ${s.name}</span>
+<div class="flex items-center gap-1.5">
+<button onclick="openEditSiteModal('${s.id}')" class="text-amber-700 hover:text-amber-900 font-bold text-[11px] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Edit Site</button>
+<button onclick="deleteSiteLocation('${s.id}')" class="text-red-600 hover:text-red-800 font-bold text-[11px] bg-red-50 px-2 py-0.5 rounded border border-red-200">Remove</button>
+</div>
+</div>`).join('');
+
 return `<div class="p-3 border rounded-xl bg-slate-50 space-y-2 text-xs">
-<div class="flex justify-between items-start"><div><p class="font-bold text-slate-800 text-sm">${c.name}</p><p class="text-slate-500 mt-0.5">Rep: <span class="font-medium">${c.rep || 'N/A'}</span></p></div>
-<div class="flex items-center gap-1.5"><button onclick="editClient('${c.id}')" class="bg-slate-200 hover:bg-slate-300 px-2.5 py-1 rounded font-bold text-slate-700">Edit</button><button onclick="deleteClientOrg('${c.id}')" class="bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded font-bold text-red-600">Delete</button></div></div>
-<div class="pl-5 pt-1 border-t border-slate-200"><p class="font-bold text-[11px] text-slate-500 uppercase tracking-wider mb-1">Linked Sites:</p>${sitesHtml}</div></div>`;
+<div class="flex justify-between items-start">
+<div>
+<p class="font-bold text-slate-800 text-sm">${c.name}</p>
+<p class="text-slate-500 mt-0.5">Rep: <span class="font-medium">${c.rep || 'N/A'}</span> | Email: <span class="font-medium">${c.email || 'N/A'}</span></p>
+</div>
+<div class="flex items-center gap-1.5">
+<button onclick="openEditClientModal('${c.id}')" class="bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 px-2.5 py-1 rounded font-bold text-xs shadow-sm">Edit Project</button>
+<button onclick="deleteClientOrg('${c.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-2.5 py-1 rounded font-bold text-xs shadow-sm">Delete</button>
+</div>
+</div>
+<div class="pl-3 pt-2 border-t border-slate-200 space-y-1">
+<p class="font-bold text-[10px] text-slate-500 uppercase tracking-wider mb-1">Linked Site Locations:</p>
+${sitesHtml}
+</div>
+</div>`;
 }).join('');
+lucide.createIcons();
 }
 
-function editClient(clientId) {
+function openEditClientModal(clientId) {
 const c = clients.find(x => x.id === clientId);
 if (!c) return;
-const newName = prompt("Edit Project Name:", c.name); if (newName === null) return;
-c.name = newName.trim(); localStorage.setItem('tw_clients', JSON.stringify(clients));
-if (supabaseClient) supabaseClient.from('clients').update({ name: c.name }).eq('id', c.id);
-populateDropdowns(); renderDashboard(); renderManageList();
+document.getElementById('editClientId').value = c.id;
+document.getElementById('editClientName').value = c.name || '';
+document.getElementById('editClientRep').value = c.rep || '';
+document.getElementById('editClientEmail').value = c.email || '';
+document.getElementById('editClientModal').classList.remove('hidden');
+document.getElementById('editClientModal').classList.add('flex');
+}
+function closeEditClientModal() { document.getElementById('editClientModal').classList.add('hidden'); }
+
+async function handleSaveEditClient(e) {
+e.preventDefault();
+const id = document.getElementById('editClientId').value;
+const c = clients.find(x => x.id === id);
+if (c) {
+c.name = document.getElementById('editClientName').value.trim();
+c.rep = document.getElementById('editClientRep').value.trim();
+c.email = document.getElementById('editClientEmail').value.trim();
+localStorage.setItem('tw_clients', JSON.stringify(clients));
+if (supabaseClient) {
+try { await supabaseClient.from('clients').update({ name: c.name, rep: c.rep, email: c.email }).eq('id', c.id); } catch(e){}
+}
+populateDropdowns(); renderDashboard(); renderManageList(); closeEditClientModal();
+}
+}
+
+function openEditSiteModal(siteId) {
+const s = sites.find(x => x.id === siteId);
+if (!s) return;
+document.getElementById('editSiteId').value = s.id;
+document.getElementById('editSiteName').value = s.name || '';
+
+const sSel = document.getElementById('editSiteClientId');
+sSel.innerHTML = '';
+clients.forEach(c => sSel.innerHTML += `<option value="${c.id}" ${c.id===s.clientId?'selected':''}>${c.name}</option>`);
+
+document.getElementById('editSiteModal').classList.remove('hidden');
+document.getElementById('editSiteModal').classList.add('flex');
+}
+function closeEditSiteModal() { document.getElementById('editSiteModal').classList.add('hidden'); }
+
+async function handleSaveEditSite(e) {
+e.preventDefault();
+const id = document.getElementById('editSiteId').value;
+const s = sites.find(x => x.id === id);
+if (s) {
+s.clientId = document.getElementById('editSiteClientId').value;
+s.name = document.getElementById('editSiteName').value.trim();
+localStorage.setItem('tw_sites', JSON.stringify(sites));
+if (supabaseClient) {
+try { await supabaseClient.from('sites').update({ clientId: s.clientId, name: s.name }).eq('id', s.id); } catch(e){}
+}
+populateDropdowns(); renderDashboard(); renderManageList(); closeEditSiteModal();
+}
 }
 
 async function deleteClientOrg(clientId) {
+if (!confirm("Are you sure you want to delete this project?")) return;
 const purgeAudits = confirm("Click OK to ALSO delete all inspection records for this project, or Cancel to keep historical data.");
 clients = clients.filter(c => c.id !== clientId); sites = sites.filter(s => s.clientId !== clientId);
 if (purgeAudits) audits = audits.filter(a => a.clientId !== clientId);
@@ -778,7 +947,7 @@ populateDropdowns(); renderDashboard(); renderManageList();
 }
 
 async function deleteSiteLocation(siteId) {
-if (!confirm("Remove this site?")) return;
+if (!confirm("Remove this site location permanently?")) return;
 sites = sites.filter(s => s.id !== siteId); localStorage.setItem('tw_sites', JSON.stringify(sites));
 if (supabaseClient) { try { await supabaseClient.from('sites').delete().eq('id', siteId); } catch(e){} }
 populateDropdowns(); renderDashboard(); renderManageList();
